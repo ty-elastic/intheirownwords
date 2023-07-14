@@ -1,0 +1,10 @@
+git+https://github.com/m-bain/whisperx.git
+
+ffmpeg-python
+scenedetect[opencv]
+boto3
+elasticsearch
+sentence-transformers
+yake
+pytesseract
+streamlit
