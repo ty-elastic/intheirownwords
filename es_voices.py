@@ -6,7 +6,9 @@ VOICES_INDEX = "voices"
 VOICE_CONFIDENCE_THRESHOLD = 0.85
 
 def lookup_speaker_by_id(speaker_id):
+    
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
+    print(url)
     with Elasticsearch([url], verify_certs=True) as es:
         query = {
             "match":{
@@ -30,8 +32,8 @@ def lookup_speaker_by_id(speaker_id):
             return {}
 
 def lookup_speaker(query_embedding):
-
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
+
     with Elasticsearch([url], verify_certs=True) as es:
 
         knn = {

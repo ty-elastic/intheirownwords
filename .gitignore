@@ -1,4 +1,4 @@
-vars.env
+env.vars
 questions.txt
 es/voices.cmd
 .whisper/

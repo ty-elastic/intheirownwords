@@ -55,7 +55,8 @@ def split(project, segments):
 
     if len(segments) > 0:
         scene = find_scene(project, segments[0]['start'], segments[0]['end'])
-        speaker_dialog = {'speaker.id':segments[0]['speaker_id'], 'text_blocks':[], 'scene.frame_num':scene['frame_num']}
+        if scene is not None:
+            speaker_dialog = {'speaker.id':segments[0]['speaker_id'], 'text_blocks':[], 'scene.frame_num':scene['frame_num']}
 
     while(segment_offset < len(segments)):
         # print ("seg_offset" + str(segment_offset) + " len=" + str(len(segments)))
