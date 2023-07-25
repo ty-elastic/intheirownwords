@@ -1,15 +1,20 @@
 from es_bulk import bulkLoadIndexPipeline
 from elasticsearch import Elasticsearch, helpers
+from elasticsearch.client import MlClient
 import os
 import es_voices
 import batteries
 import dateutil.parser
 import yake
+import nltk.data
+
+nltk.download('punkt')
 
 CLAUSES_INDEX = "clauses"
 CLAUSES_PIPELINE = "clauses-embeddings"
 CLAUSE_TEXT_BOOST = 2
 CLAUSE_KEYWORD_BOOST = 0
+CLAUSE_CONFIDENCE_THRESHOLD = 15
 
 def add_clauses(project):
     batch = []
@@ -28,6 +33,36 @@ def extract_keywords(search_text):
     if len(keywords) > 0:
         return keywords[0][0]
     return None
+
+
+
+def ask_question(context, question, strip=True):
+    url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
+    with Elasticsearch([url], verify_certs=True) as es:
+        ml = MlClient(es)
+
+        config = {"question_answering": {
+        "question": question
+        }}
+        print(context)
+
+        res = ml.infer_trained_model(model_id="deepset__roberta-base-squad2", docs=[{ "text_field": context}], inference_config=config)
+        print(res)
+        if len(res['inference_results']) > 0:
+            if strip:
+                return res['inference_results'][0]['predicted_value']
+            else:
+                return res['inference_results'][0]
+
+def find_sentence_that_answers_question(context, question, answer):
+    tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+    sentences = tokenizer.tokenize(context)
+    candidates = []
+    for sentence in sentences:
+        if sentence.find(answer) != -1:
+            print(sentence)
+            return sentence
+
 
 def get_origins():
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
@@ -124,15 +159,15 @@ def find_clauses(origin, search_text):
 
         print(resp)
         if len(resp['hits']['hits']) > 0:
-            body = resp['hits']['hits'][0]['fields']
+            if resp['hits']['hits'][0]['_score'] > CLAUSE_CONFIDENCE_THRESHOLD:
+                body = resp['hits']['hits'][0]['fields']
 
-            clause = batteries.strip_field_arrays(body)
-            clause['date'] = dateutil.parser.isoparse(clause['date'])
-        
-            voice = es_voices.lookup_speaker_by_id(body['speaker.id'][0])
-            clause.update(voice)
-            print (clause)
+                clause = batteries.strip_field_arrays(body)
+                clause['date'] = dateutil.parser.isoparse(clause['date'])
+            
+                voice = es_voices.lookup_speaker_by_id(body['speaker.id'][0])
+                clause.update(voice)
+                print (clause)
 
-            return clause
-        else:
-            return None
+                return clause
+        return None

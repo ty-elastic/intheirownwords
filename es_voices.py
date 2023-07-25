@@ -5,6 +5,51 @@ import batteries
 VOICES_INDEX = "voices"
 VOICE_CONFIDENCE_THRESHOLD = 0.85
 
+def get_unassigned_voices():
+    url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
+    print(url)
+    with Elasticsearch([url], verify_certs=True) as es:
+        query = {
+            "bool": {
+            "must_not": {
+                "exists": {
+                "field": "speaker.name"
+                }
+            }
+            }
+        }
+
+        fields = ["_id", "example.end", "example.start", "example.url", "example.source_url"]
+        resp = es.search(index=VOICES_INDEX,
+                            query=query,
+                            fields=fields,
+                            source=False)
+
+        #print(resp)
+        docs = []
+        for voice in resp['hits']['hits']:
+            doc = batteries.strip_field_arrays(voice['fields'])
+            docs.append(doc)
+        #print(docs)
+        return docs
+
+
+def update_speaker(speaker_id, speaker_name, speaker_title, speaker_company, speaker_email):
+    url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
+    #print(url)
+    with Elasticsearch([url], verify_certs=True) as es:
+        resp = es.update(index=VOICES_INDEX,
+                            id=speaker_id,
+                            body = {
+                                "doc": {
+                                    'speaker.name': speaker_name,
+                                    'speaker.title': speaker_title,
+                                    'speaker.company': speaker_company,
+                                    'speaker.email': speaker_email
+                                }
+                            })
+        print (resp)
+
 def lookup_speaker_by_id(speaker_id):
     
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
@@ -15,7 +60,6 @@ def lookup_speaker_by_id(speaker_id):
                 "_id": speaker_id
             }
         }
-
 
         fields = ["_id", "speaker.name", "speaker.title", "speaker.company", "speaker.email"]
         resp = es.search(index=VOICES_INDEX,
@@ -66,6 +110,7 @@ def add_speaker(project, query_embedding, example_url, example_start, example_en
                     'example.url': example_url,
                     'example.start': example_start,
                     'example.end': example_end,
+                    'example.source_url': project['source_url'],
                     'voice_vector': query_embedding
                 })
             result = dict(res)

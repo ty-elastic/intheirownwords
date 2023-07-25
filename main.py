@@ -10,6 +10,7 @@ import argparse
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("input", help="input file")
+    parser.add_argument("source_url", help="original video url")
     parser.add_argument("date", help="date")
     parser.add_argument("title", help="title")
     parser.add_argument("kind", help="kind (webinar)")
@@ -18,12 +19,12 @@ def main():
     args = parser.parse_args()
     config = vars(args)
     print(config)
-    process(args.input, args.title, args.date, args.kind, args.origin, args.disable_write == False)
+    process(args.input, args.source_url, args.title, args.date, args.kind, args.origin, args.disable_write == False)
 
-def process(input, title, date, kind, origin, enable_write):
+def process(input, source_url, title, date, kind, origin, enable_write):
     start_time = time.time()
 
-    project = batteries.create_project(input, True, title, date, kind, origin, enable_write)
+    project = batteries.create_project(input, source_url, title, date, kind, origin, enable_write)
     batteries.conform_audio(project)
 
     video.detect_scenes(project)

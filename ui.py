@@ -20,10 +20,10 @@ if question_button:
     print(origin)
     st.cache_data.clear()
     results = es_clauses.find_clauses(origin, query)
-    print(results['text'])
-    if results != None:
 
-        col1, col2, col3 = st.columns(3)
+    if results != None:
+        print(results['text'])
+        col1, col2, = st.columns(2)
 
         with col1:
             placeholder = st.empty()
@@ -46,9 +46,19 @@ if question_button:
             text = results['date'].strftime('%Y-%m-%d')
             st.markdown(text)
 
-        with col3:
-            if 'scene.frame_url' in results:
-                st.image(results['scene.frame_url'])
+            st.write("---")
+            st.write("## ML Q&A using ELSER Results")
+            answer = es_clauses.ask_question(results['text'], query)
+            st.write(f"**{answer}**")
+
+            answer = es_clauses.find_sentence_that_answers_question(results['text'], query, answer)
+            escaped = batteries.escape_markdown(answer)
+            text = "### :orange[_\"" + escaped + "\"_]" + "\r\n"
+            st.markdown(text)
+
+        # with col3:
+        #     if 'scene.frame_url' in results:
+        #         st.image(results['scene.frame_url'])
 
         #st.write(results)    
     

@@ -106,13 +106,16 @@ PUT /voices
      "example.url": {
        "type": "keyword"
      },
+     "example.source_url": {
+       "type": "keyword"
+     },
      "example.start": {
        "type": "float"
      },
      "example.stop": {
        "type": "float"
      },
-     
+
      "speaker.name": {
        "type": "keyword"
      },
