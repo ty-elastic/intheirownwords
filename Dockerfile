@@ -14,9 +14,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update \
-    && apt-get install -y ffmpeg \
-    && apt-get install -y libsm6 \
-    && apt-get install -y libxext6
+    && apt-get install -y ffmpeg
+#     && apt-get install -y libsm6 \
+#     && apt-get install -y libxext6
 
 # Install miniconda
 ENV CONDA_DIR /opt/conda

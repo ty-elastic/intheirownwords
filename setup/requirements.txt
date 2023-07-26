@@ -8,3 +8,6 @@ sentence-transformers
 yake
 pytesseract
 streamlit
+
+openai
+tiktoken

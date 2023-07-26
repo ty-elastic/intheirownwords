@@ -207,11 +207,10 @@ sudo apt install build-essential
 
 ### Install Docker
 
-https://docs.docker.com/engine/install/ubuntu/
+https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#getting-started
 
-https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
 
-sudo docker run --rm --runtime=nvidia --gpus all --env-file vars.env -v $PWD/prj:/prj -v /usr/local/cuda:/usr/local/cuda -v $PWD/../ingest:/ingest 48ff35cd9e8e2b488b4c1538965071f078c1ab1352cc0a2152ec909971626d52 /ingest/digikey-dip.mp4 04/19/23 "DIP Switches 101" tutorial digikey
+sudo docker run --rm --runtime=nvidia --gpus all --env-file env.vars -v $PWD/prj:/prj -v /usr/local/cuda:/usr/local/cuda -v $PWD/ingest:/ingest sha256:89d1349781e60128e5fdcbae1496dd4d1e47078ba3d6466c4fc83c576bd70f00 /ingest/digikey-power.mp4 http://test.com/video.mp4 04/19/23 "DIP Switches 101" tutorial digikey
 
 ### Install NVIDIA GPU Drivers
 
