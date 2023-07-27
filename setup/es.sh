@@ -17,6 +17,14 @@ sudo docker run -it --rm elastic/eland \
       --clear-previous \
       --start
 
+curl -XPUT "$ELASTICSEARCH_URL/_ml/trained_models/.elser_model_1" -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d'
+{
+  "input": {
+	"field_names": ["text_field"]
+  }
+}'
+curl -XPOST "$ELASTICSEARCH_URL/_ml/trained_models/.elser_model_1/deployment/_start?deployment_id=for_search" -H "kbn-xsrf: reporting"
+
 curl -XDELETE "$ELASTICSEARCH_URL/clauses" -H "kbn-xsrf: reporting"
 curl -XPUT "$ELASTICSEARCH_URL/clauses" -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d'
 {
@@ -158,12 +166,3 @@ curl -XPUT "$ELASTICSEARCH_URL/voices" -H "kbn-xsrf: reporting" -H "Content-Type
    }
  }
 }'
-
-curl -XPUT "$ELASTICSEARCH_URL/_ml/trained_models/.elser_model_1" -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d'
-{
-  "input": {
-	"field_names": ["text_field"]
-  }
-}'
-
-curl -XPOST "$ELASTICSEARCH_URL/_ml/trained_models/.elser_model_1/deployment/_start?deployment_id=for_search" -H "kbn-xsrf: reporting"
