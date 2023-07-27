@@ -4,7 +4,7 @@ An exemplary project to demonstrate the art-of-the-possible for search of inform
 
 ## Background
 
-Modern organizations, from large enterprises to school districts, share a lot of pertinent and timely information through video content (e.g., Town Halls, Webinars, Board Meetings). Typically such content addresses a wide range of topics within a given video, with each topic of interest only to a specific subset of the audience. Without a good intra-video search option, viewers are forced to consume such content linearly. At best, this potentially wastes a viewer's valuable time; at worst, it creates enough of a barrier to consumption that pertinent information (which could be a catalyst to further productivity) goes unwatched.
+Modern organizations, from large enterprises to school districts, share a lot of pertinent and timely information through video content (e.g., Town Halls, Tutorials, Webinars, Board Meetings). Typically such content addresses a wide range of topics within a given video, with each topic of interest only to a specific subset of the audience. Without a good intra-video search option, viewers are forced to consume such content linearly. At best, this potentially wastes a viewer's valuable time; at worst, it creates enough of a barrier to consumption that pertinent information (which could be a catalyst to further productivity) goes unwatched.
 
 In general, few options exist to make informative, often private (e.g., internal use only), video practically searchable. Some existing projects summarize video content using a public Speech-To-Text (STT) engine and LLM (e.g., as offered by OpenAI), and then offer search on top of the summarized output. Use of such services, however, potentially puts private information at risk for public exposure. Further, and arguably more importantly, speakers in informative video are generally:
 * subject matter experts
@@ -36,7 +36,7 @@ Keyword search of STT transcriptions (e.g., search over sentences in a caption t
 * Don’t trust a LLM to summarize critical information; let people speak for themselves
 * Don’t share private data with a hosted AI service
 
-# Getting Started
+# Deployment
 
 ## Hugging Face Models
 
@@ -48,33 +48,27 @@ Some of the models require a [Hugging Face](https://huggingface.co) token and ac
 
 ## Elastic Instance
 
-You will need a modern Elastic instance with sufficient ML resources (at least 4GB of RAM) to support this demo. You can start a 2 week free trial of Elastic Cloud [here](https://cloud.elastic.co/registration). Be sure to select "4 GB RAM" for the Machine Learning instance type. When you create the instance, you will be provided a password for the `elastic` user; make note of it. Additionally, from the Deployments page, you will need the endpoint of your Elasticsearch instance.
+You will need a modern Elastic (>= 8.9) instance with sufficient ML resources (at least 4GB of RAM) to support this demo. You can start a 2 week free trial of Elastic Cloud [here](https://cloud.elastic.co/registration). Be sure to select "4 GB RAM" for the Machine Learning instance type. When you create the instance, you will be provided a password for the `elastic` user; make note of it. Additionally, from the Deployments page, you will need the endpoint of your Elasticsearch instance.
 
-## Media Processing
+## Media Storage
 
-### Ingest
-
-Because many content sites do not permit anonymous, external playback of video, and because of the variety of formats possible, this demo requires you to externally download video, possibly transcode it (to a format ingestible by ffmpeg), and then upload it to your Media Processing Instance.
-
-I have found the [HLS Downloader extension for Chrome](https://webextension.org/listing/hls-downloader.html) to be a reasonably good way of downloading exemplary video content from web sites. 1280x720p is generally a good resolution choice (higher resolution => longer processing time, but better slide OCR). In some instances, you may need to use `ffmpeg` to combine seperate video and audio renditions.
-
-After you have a `.mkv` or `.mp4` file, upload it to your Media Processing Instance in the `/home/ubuntu/intheirownwords/ingest` folder. 
-
-### Storage For Playback
-
-Because many content sites do not permit anonymous, external playback of video, this demo will upload your video to a publicly-accessible s3 bucket to enable the UI to later play it back. The s3 bucket is assumed to be available in the same region as your Media Processing Instance. You will need to setup the bucket with:
+Because many content sites do not permit anonymous, external playback of video, this demo will upload your ingested video to a publicly-accessible s3 bucket to enable the UI to later play it back. The s3 bucket is assumed to be available in the same region as your Media Processing Instance. You will need to setup the bucket with:
 * [anonymous read permissions and static https hosting](https://docs.aws.amazon.com/AmazonS3/latest/userguide/HostingWebsiteOnS3Setup.html)
 * [an IAM allowing write permissions from your s3 instance](https://repost.aws/knowledge-center/ec2-instance-access-s3-bucket)
 
-### EC2 Instance
+Obviously, for production use cases, you would likely host your own video content; the demo could be [modified accordingly](https://github.com/ty-elastic/intheirownwords/blob/1e4dbef4d48b35cffc146da860b778485137a950/src/prj.py#L53).
 
-I selected a `g4dn.xlarge` EC2 instance type with a single NVIDIA T4 Tensor Core to handle the ML portion of this workload. I found this provided a good balance between cost (~ 0.50 per minute) and CPU/GPU power (processing ~1 hour of video in about 10 minutes). That said, this demo should run on any modern CUDA-powered environment. I created a 500GB root volume to contain the requisite ML models and temporary media. I used the Ubuntu 22 LTS AMI.
+## EC2 Instance(s)
 
-If this same instance will be serving the UI, you will need to update the inbound security rules to allow port `8501` from any host.
+You can optionally run media ingest seperately from the UI. This would enable you to run the more expensive GPU-enabled media ingest on-demand, with the UI running on a lesser (free!) compute tier. This documentation assumes a combined ingest and UI server.
+
+I selected a `g4dn.xlarge` EC2 instance type with a single NVIDIA T4 Tensor Core to accomodate the ML required for ingest processing. I found this instance type provided a good balance between cost (~ 0.50 per minute) and CPU/GPU power (processing ~1 hour of video in about 10 minutes). That said, this demo should run on any modern CUDA-powered environment. I created a 500GB root volume to contain the requisite ML models and temporary media. The installation script assumes use of the Ubuntu 22 LTS AMI.
+
+If this same EC2 instance will be serving the UI, you will need to update the inbound security rules to allow port `8501` from any host.
 
 ### Setup environment vars
 
-Create a file in your home directory on the Media Processing Instance with the following environment variables:
+Create a file in your home directory on the EC2 instance with the following environment variables:
 
 ```
 # for media storage
@@ -98,7 +92,7 @@ OPENAI_API_VERSION=
 
 ### Install Dependencies
 
-The following will setup dependencies on your EC2 instance to run the demo from within docker. It will also setup requisite dependencies within Elasticsearch.
+The following will setup dependencies on your EC2 instance to run the demo using docker containers. It will also setup requisite dependencies within Elasticsearch.
 
 ```
 git clone https://github.com/ty-elastic/intheirownwords.git
@@ -107,25 +101,52 @@ cd intheirownwords/setup
 ./es.sh
 ```
 
-If you intend to further develop this demo, you can run `./ubuntu.sh -d true` which will install the tools required to run on the host.
+If you intend to further develop this demo, you can run `./ubuntu.sh -d true` which will install the tools required to run directly on the host.
 
-If you want to install and run just the UI on a seperate EC2 instance (without a GPU), you can run `./ubuntu.sh -uionly true` which will skip installation of GPU-related tooling.
+If you want to install and run just the UI on a seperate EC2 instance (without a GPU), you can run `./ubuntu.sh -u true` which will skip installation of GPU-related tooling.
 
-## Run
+# Use
 
-### Content Ingest
+## Content Ingest
+
+### Media Prep
+
+Because many content sites do not permit anonymous, external playback of video, and because of the variety of formats possible, this demo requires you to externally download video, possibly transcode it (to a format ingestible by ffmpeg), and then upload it to your EC2 instance.
+
+I have found the [HLS Downloader extension for Chrome](https://webextension.org/listing/hls-downloader.html) to be a reasonably good way of downloading exemplary video content from web sites. 1280x720p is generally a good resolution choice (higher resolution => longer processing time, but better slide OCR). In some instances, you may need to use `ffmpeg` to combine seperate video and audio renditions.
+
+After you have a `.mkv` or `.mp4` file, upload it to your EC2 instance into the `/home/ubuntu/intheirownwords/ingest` folder. 
+
+### Process and Ingest
+
+Execute the following commands, where:
+| Field                 | Description                           |
+| --------------------  | ------------------------------------- |
+| (ingest path)         | relative path to media file to ingest |
+| (original source url) | URL from where the media was scrapped; useful when later tagging speakers/voices |
+| (date) | date when video was recorded |
+| (title) | video title |
+| (type) | type of content (e.g., webinar); could be used to filter in UI |
+| (origin) | origin of content (e.g., "elastic"); useful for multi-tenant setups |
 
 ```
 cd /home/ubuntu/intheirownwords
 ./ingest-run.sh (ingest path) (original source url) (date) (title) (type) (origin)
-# ./ingest-run.sh ingest/test.mp4 http://elastic.co/blog/test 07/27/23 test webinar elastic
 ```
 
-### Search
+example: `./ingest-run.sh ingest/test.mp4 http://elastic.co/blog/test 07/27/23 test webinar elastic`
+
+## Search
+
+Execute the following command:
 
 ```
 cd /home/ubuntu/intheirownwords
 ./ui-run.sh
 ```
+
+## Voice ID
+
+This demo uses Elasticsearch as a vector database to associate "voice prints" with speaker metadata. This allows the system to automatically tag repeat speakers in videos. After ingest, start the UI, and go to the "voices" tab on the left. Update each unknown speaker with associated metadata. The speaker metadata is linked at search time; you do not need to reimport videos after tagging.
 
 # Future Work

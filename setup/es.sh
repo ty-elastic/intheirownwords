@@ -10,7 +10,7 @@ source ../env.vars
 set +o allexport
 
 ELASTICSEARCH_URL="https://${ES_USER}:${ES_PASS}@${ES_ENDPOINT}:443"
-docker run -it --rm elastic/eland \
+sudo docker run -it --rm elastic/eland \
     eland_import_hub_model \
       --url $ELASTICSEARCH_URL \
       --hub-model-id deepset/roberta-base-squad2 \

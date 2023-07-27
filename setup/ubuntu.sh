@@ -1,5 +1,8 @@
 #!/bin/bash
 
+mkdir -p ../prj
+mkdir -p ../ingest
+
 develop="false"
 uionly="false"
 while getopts d:u: flag
@@ -14,7 +17,7 @@ echo "uionly=$uionly"
 
 # install build essentials
 echo "installing build tooling..."
-sudo apt update 
+sudo apt update
 sudo apt install -y build-essential
 
 if [ "$uionly" == "false" ]; then
@@ -34,11 +37,9 @@ if [[ $(which docker) && $(docker --version) ]]; then
   echo "docker is installed."
 else
   echo "installing docker..."
-  curl https://get.docker.com | sh \
-    && sudo systemctl --now enable docker
-
+  curl https://get.docker.com | sh
+  sudo systemctl --now enable docker
   sudo usermod -aG docker $USER
-  newgrp docker
 fi
 
 if [ "$uionly" == "false" ]; then
@@ -57,12 +58,12 @@ if [ "$uionly" == "false" ]; then
 
   # build container
   echo "building ingest container..."
-  docker build -t intheirownwords-ingest -f ../Dockerfile.ingest ../
+  sudo docker build -t intheirownwords-ingest -f ../Dockerfile.ingest ../
 fi
 
 # build container
 echo "building ui container..."
-docker build -t intheirownwords-ui -f ../Dockerfile.ui ../
+sudo docker build -t intheirownwords-ui -f ../Dockerfile.ui ../
 
 if [ "$develop" == "true" ]; then
   # install conda
