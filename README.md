@@ -66,9 +66,16 @@ I selected a `g4dn.xlarge` EC2 instance type with a single NVIDIA T4 Tensor Core
 
 If this same EC2 instance will be serving the UI, you will need to update the inbound security rules to allow port `8501` from any host.
 
+### Download the project
+
+```
+git clone https://github.com/ty-elastic/intheirownwords.git
+cd /home/ubuntu/intheirownwords
+```
+
 ### Setup environment vars
 
-Create a file in your home directory on the EC2 instance with the following environment variables:
+Create a file named `env.vars` in the `/home/ubuntu/intheirownwords/` directory on the EC2 instance with the following environment variables:
 
 ```
 # for media storage
@@ -95,8 +102,7 @@ OPENAI_API_VERSION=
 The following will setup dependencies on your EC2 instance to run the demo using docker containers. It will also setup requisite dependencies within Elasticsearch.
 
 ```
-git clone https://github.com/ty-elastic/intheirownwords.git
-cd intheirownwords/setup
+cd /home/ubuntu/intheirownwords/setup
 ./ubuntu.sh
 ./es.sh
 ```
