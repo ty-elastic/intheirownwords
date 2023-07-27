@@ -60,9 +60,9 @@ Obviously, for production use cases, you would likely host your own video conten
 
 ## EC2 Instance(s)
 
-You can optionally run media ingest seperately from the UI. This would enable you to run the more expensive GPU-enabled media ingest on-demand, with the UI running on a lesser (free!) compute tier. This documentation assumes a combined ingest and UI server.
+You can optionally run media ingest separately from the UI. This would enable you to run the more expensive GPU-enabled media ingest on-demand, with the UI running on a lesser (free!) compute tier. This documentation assumes a combined ingest and UI server.
 
-I selected a `g4dn.xlarge` EC2 instance type with a single NVIDIA T4 Tensor Core to accomodate the ML required for ingest processing. I found this instance type provided a good balance between cost (~ 0.50 per minute) and CPU/GPU power (processing ~1 hour of video in about 10 minutes). That said, this demo should run on any modern CUDA-powered environment. I created a 500GB root volume to contain the requisite ML models and temporary media. The installation script assumes use of the Ubuntu 22 LTS AMI.
+I selected a `g4dn.xlarge` EC2 instance type with a single NVIDIA T4 Tensor Core to accommodate the ML required for ingest processing. I found this instance type provided a good balance between cost (~ 0.50 per minute) and CPU/GPU power (processing ~1 hour of video in about 10 minutes). That said, this demo should run on any modern CUDA-powered environment. I created a 500GB root volume to contain the requisite ML models and temporary media. The installation script assumes use of the Ubuntu 22 LTS AMI.
 
 If this same EC2 instance will be serving the UI, you will need to update the inbound security rules to allow port `8501` from any host.
 
@@ -103,7 +103,7 @@ cd intheirownwords/setup
 
 If you intend to further develop this demo, you can run `./ubuntu.sh -d true` which will install the tools required to run directly on the host.
 
-If you want to install and run just the UI on a seperate EC2 instance (without a GPU), you can run `./ubuntu.sh -u true` which will skip installation of GPU-related tooling.
+If you want to install and run just the UI on a separate EC2 instance (without a GPU), you can run `./ubuntu.sh -u true` which will skip installation of GPU-related tooling.
 
 # Use
 
@@ -144,6 +144,8 @@ Execute the following command:
 cd /home/ubuntu/intheirownwords
 ./ui-run.sh
 ```
+
+and browse to the External URL provided (note, remember to open port 8501 on your EC2 instance).
 
 ## Voice ID
 
