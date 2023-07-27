@@ -1,6 +1,7 @@
 from elasticsearch.client import MlClient
 from elasticsearch import Elasticsearch, helpers
 import nltk.data
+import os
 
 Q_AND_A_MODEL = "deepset__roberta-base-squad2"
 

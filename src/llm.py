@@ -51,5 +51,5 @@ def query(prompt):
     return answer, time_taken, cost
 
 def ask_question(context, question):
-    prompt = f"Answer this question with a short answer: {question}\nUsing only the information from this Elastic Doc: {context}\nIf the answer is not contained in the supplied doc reply '{PROMPT_FAILED}' and nothing else"
+    prompt = f"Answer this question with a short answer: {question}\nUsing only the information from this document: {context}\nIf the answer is not contained in the supplied doc reply '{PROMPT_FAILED}' and nothing else"
     return query(prompt)

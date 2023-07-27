@@ -30,7 +30,7 @@ def conform_audio(project):
 def create_project(input, source_url, title, date, kind, origin, enable_write):
 
     project_id = str(uuid.uuid4())
-    prj_path = os.path.join(os.getenv('PROJECT_DIR'), project_id)
+    prj_path = os.path.join(PROJECT_DIR, project_id)
     shutil.rmtree(prj_path, ignore_errors=True)
     os.makedirs(prj_path)
 

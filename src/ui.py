@@ -1,5 +1,6 @@
 import streamlit as st
 import es_clauses
+import es_ml
 import time
 import llm
 import os
@@ -79,10 +80,10 @@ if question_button:
 
             st.write("---")
             st.write("## ML Q&A using ELSER Results")
-            answer = es_clauses.ask_question(results['text'], query)
+            answer = es_ml.ask_question(results['text'], query)
             st.write(f"**{answer}**")
 
-            answer = es_clauses.find_sentence_that_answers_question(results['text'], query, answer)
+            answer = es_ml.find_sentence_that_answers_question(results['text'], query, answer)
             escaped = escape_markdown(answer)
             text = "### :orange[_\"" + escaped + "\"_]" + "\r\n"
             st.markdown(text)
@@ -91,7 +92,7 @@ if question_button:
                 st.write("---")
                 st.write("## OpenAI Q&A using ELSER Results")
 
-                answer, time_taken, cost = llm.ask_question(query, body)
+                answer, time_taken, cost = llm.ask_question(results['text'], query)
                 if llm.PROMPT_FAILED in answer:
                     st.write("Insufficient data in Elasticsearch results")
                 else:
