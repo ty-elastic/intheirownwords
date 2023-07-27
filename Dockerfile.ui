@@ -30,6 +30,6 @@ COPY src/es_*.py .
 COPY src/llm.py .
 COPY src/ui.py .
 
-COPY src/pages/*.py ./pages
+COPY src/pages/*.py pages/
 
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "intheirownwords", "streamlit", "run", "ui.py"]
