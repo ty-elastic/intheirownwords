@@ -41,7 +41,7 @@ flowchart TB
         bucket
     end
 
-    subgraph elastic
+    subgraph Elasticsearch
         clauses
         voices
     end
