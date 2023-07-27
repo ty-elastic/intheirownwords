@@ -1,12 +1,12 @@
 #!/bin/bash
 
-develop=false
-uionly=false
+develop="false"
+uionly="false"
 while getopts u:a:f: flag
 do
     case "${flag}" in
-        d) develop=true;;
-        u) uionly=true;;
+        d) develop="true";;
+        u) uionly="true";;
     esac
 done
 
