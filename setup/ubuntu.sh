@@ -2,13 +2,15 @@
 
 develop="false"
 uionly="false"
-while getopts u:a:f: flag
+while getopts d:u: flag
 do
     case "${flag}" in
         d) develop="true";;
         u) uionly="true";;
     esac
 done
+echo "develop=$develop"
+echo "uionly=$uionly"
 
 # install build essentials
 echo "installing build tooling..."
