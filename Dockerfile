@@ -31,16 +31,16 @@ RUN conda create --name intheirownwords python=3.10 && \
 
 SHELL ["conda", "run", "-n", "intheirownwords", "/bin/bash", "-c"]
 
-RUN conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.7 -c pytorch -c nvidia
+RUN conda install -y pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.7 -c pytorch -c nvidia
 
 # install tesseract binaries
-RUN conda install -c conda-forge tesseract
+RUN conda install -y -c conda-forge tesseract
 
 # install required python libs
 RUN pip install git+https://github.com/pyannote/pyannote-audio.git@develop
-COPY requirements.txt .
+COPY setup/requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY *.py .
+COPY src/*.py .
 
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "intheirownwords", "python", "main.py"]

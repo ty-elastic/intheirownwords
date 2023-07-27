@@ -1,10 +1,13 @@
 #!/bin/bash
 
 # install docker
+echo "installing docker..."
 curl https://get.docker.com | sh \
   && sudo systemctl --now enable docker
 
 # install nvidia/cuda docker extensions
+echo "installing nvidia docker extensions..."
+
 distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
       && curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
       && curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | \
