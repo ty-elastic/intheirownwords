@@ -70,7 +70,7 @@ If this same EC2 instance will be serving the UI, you will need to update the in
 
 ```
 git clone https://github.com/ty-elastic/intheirownwords.git
-cd /home/ubuntu/intheirownwords
+cd intheirownwords
 ```
 
 ### Setup environment vars
