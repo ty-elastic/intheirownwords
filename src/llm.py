@@ -14,6 +14,8 @@ MAX_TOKENS=1024
 MAX_CONTENT_TOKENS=4000
 SAFETY_MARGIN=5
 
+PROMPT_FAILED = "I'm unable to answer the question based on the results."
+
 def truncate_text(text, max_tokens):
     tokens = text.split()
     if len(tokens) <= max_tokens:
@@ -47,3 +49,7 @@ def query(prompt):
     cost = float((0.0015*(openai_token_count)/1000) + (0.002*(answer_token_count/1000)))
 
     return answer, time_taken, cost
+
+def ask_question(context, question):
+    prompt = f"Answer this question with a short answer: {question}\nUsing only the information from this Elastic Doc: {context}\nIf the answer is not contained in the supplied doc reply '{PROMPT_FAILED}' and nothing else"
+    return query(prompt)

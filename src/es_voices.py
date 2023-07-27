@@ -1,6 +1,6 @@
 from elasticsearch import Elasticsearch, helpers
 import os
-import batteries
+import es_helpers
 
 VOICES_INDEX = "voices"
 VOICE_CONFIDENCE_THRESHOLD = 0.85
@@ -28,7 +28,7 @@ def get_unassigned_voices():
         #print(resp)
         docs = []
         for voice in resp['hits']['hits']:
-            doc = batteries.strip_field_arrays(voice['fields'])
+            doc = es_helpers.strip_field_arrays(voice['fields'])
             docs.append(doc)
         #print(docs)
         return docs
@@ -71,7 +71,7 @@ def lookup_speaker_by_id(speaker_id):
         print(resp)
         if 'fields' in resp['hits']['hits'][0]:
             body = resp['hits']['hits'][0]['fields']
-            return batteries.strip_field_arrays(body)
+            return es_helpers.strip_field_arrays(body)
         else:
             return {}
 

@@ -1,0 +1,9 @@
+elasticsearch
+sentence-transformers
+yake
+nltk
+
+streamlit
+
+openai
+tiktoken

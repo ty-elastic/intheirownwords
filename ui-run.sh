@@ -1,0 +1,1 @@
+docker run --rm --env-file env.vars -p 8501:8501 intheirownwords-ui

@@ -3,10 +3,10 @@ from elasticsearch import Elasticsearch, helpers
 from elasticsearch.client import MlClient
 import os
 import es_voices
-import batteries
+import es_helpers
 import dateutil.parser
 import yake
-
+import nltk
 
 nltk.download('punkt')
 
@@ -136,7 +136,7 @@ def find_clauses(origin, search_text):
             if resp['hits']['hits'][0]['_score'] > CLAUSE_CONFIDENCE_THRESHOLD:
                 body = resp['hits']['hits'][0]['fields']
 
-                clause = batteries.strip_field_arrays(body)
+                clause = es_helpers.strip_field_arrays(body)
                 clause['date'] = dateutil.parser.isoparse(clause['date'])
             
                 voice = es_voices.lookup_speaker_by_id(body['speaker.id'][0])

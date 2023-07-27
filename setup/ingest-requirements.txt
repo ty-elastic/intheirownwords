@@ -3,12 +3,14 @@ git+https://github.com/m-bain/whisperx.git
 ffmpeg-python
 scenedetect[opencv]
 boto3
+pytesseract
+
 elasticsearch
 sentence-transformers
 yake
-pytesseract
+nltk
+
 streamlit
 
 openai
 tiktoken
-nltk
