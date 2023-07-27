@@ -10,6 +10,7 @@ source ../env.vars
 set +o allexport
 
 ELASTICSEARCH_URL="https://${ES_USER}:${ES_PASS}@${ES_ENDPOINT}:443"
+
 sudo docker run -it --rm elastic/eland \
     eland_import_hub_model \
       --url $ELASTICSEARCH_URL \
