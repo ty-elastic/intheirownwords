@@ -11,6 +11,3 @@ yake
 nltk
 
 streamlit
-
-openai
-tiktoken

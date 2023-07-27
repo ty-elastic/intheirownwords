@@ -88,13 +88,6 @@ HF_TOKEN=
 ES_ENDPOINT=
 ES_USER=
 ES_PASS=
-
-#optional if you want to use OpenAI for Q&A
-OPENAI_API_KEY=
-OPENAI_BASE=
-OPENAI_DEPLOYMENT_ID=
-OPENAI_MODEL=
-OPENAI_API_VERSION=
 ```
 
 ### Install Dependencies
@@ -153,7 +146,7 @@ cd /home/ubuntu/intheirownwords
 
 and browse to the External URL provided (remember to open port 8501 on your EC2 instance).
 
-The search returns the relevant video, cued to the relevant section, with the relevant quote. It also uses a simple Q&A model (hosted on Elasticsearch) to try to extract a specific answer to the question provided. It further extracts the containing sentence for context. Finally, if OPENAI_* env variables are defined, it will run the extracted text and question through OpenAI for a summarized answer as a (hopefully somewhat lackluster) reference to the other results returned.
+The search returns the relevant video, cued to the relevant section, with the relevant quote. It also uses a simple Q&A model (hosted on Elasticsearch) to try to extract a specific answer to the question provided. It further extracts the containing sentence for context.
 
 ## Voice ID
 

@@ -2,7 +2,6 @@ import streamlit as st
 import es_clauses
 import es_ml
 import time
-import llm
 import os
 import re
 
@@ -87,19 +86,6 @@ if question_button:
             escaped = escape_markdown(answer)
             text = "### :orange[_\"" + escaped + "\"_]" + "\r\n"
             st.markdown(text)
-
-            if os.environ['OPENAI_API_KEY'] != None:
-                st.write("---")
-                st.write("## OpenAI Q&A using ELSER Results")
-
-                answer, time_taken, cost = llm.ask_question(results['text'], query)
-                if llm.PROMPT_FAILED in answer:
-                    st.write("Insufficient data in Elasticsearch results")
-                else:
-                    st.write(f"**{answer.strip()}**")
-                    st.write(f"\nCost: ${cost:0.6f}, ChatGPT response time: {time_taken:0.4f} sec")
-
-
 
         # with col3:
         #     if 'scene.frame_url' in results:
