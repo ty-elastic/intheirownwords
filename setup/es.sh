@@ -4,9 +4,6 @@ Q_AND_A_MODEL="deepset__roberta-base-squad2"
 
 git clone https://github.com/elastic/eland.git
 docker build -t elastic/eland eland
-sudo groupadd docker
-sudo gpasswd -a $USER docker
-newgrp docker
 
 set -o allexport
 source ../env.vars

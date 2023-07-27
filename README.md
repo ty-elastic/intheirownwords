@@ -1,6 +1,6 @@
 # In Their Own Words
 
-An exemplary project to demonstrate the art-of-the-possible for search of informative video using off-the-shelf ML models and Elasticsearch!
+An exemplary project to demonstrate the art-of-the-possible for search of informative video using off-the-shelf ML models and Elasticsearch ELSER semantic search!
 
 ## Background
 
@@ -50,258 +50,42 @@ Some of the models require a [Hugging Face](https://huggingface.co) token and ac
 
 You will need a modern Elastic instance with sufficient ML resources (at least 4GB of RAM) to support this demo. You can start a 2 week free trial of Elastic Cloud [here](https://cloud.elastic.co/registration). Be sure to select "4 GB RAM" for the Machine Learning instance type. When you create the instance, you will be provided a password for the `elastic` user; make note of it. Additionally, from the Deployments page, you will need the endpoint of your Elasticsearch instance.
 
-### Create Indices and Pipelines
-
-```
-DELETE /clauses
-PUT /clauses
-{
- "mappings": {
-   "properties": {
-     "project_id": {
-       "type": "keyword"
-     }, 
-     "media_url": {
-       "type": "keyword"
-     },
-     "title": {
-       "type": "text"
-     },
-     "date": {
-       "type": "date"
-     },
-     "kind": {
-       "type": "keyword"
-     },
-     "origin": {
-       "type": "keyword"
-     },
-     
-     "scene.start": {
-       "type": "float"
-     },
-     "scene.end": {
-       "type": "float"
-     },
-     "scene.frame_text": {
-       "type": "text"
-     },
-     "scene.frame_url": {
-       "type": "keyword"
-     },
-     "scene.frame_num": {
-       "type": "integer"
-     },
-     
-     "text": {
-       "type": "text"
-     },
-     "text_elser.tokens": {
-        "type": "rank_features" 
-      },
-      
-     "speaker.id": {
-       "type": "keyword"
-     },
-     
-     "start": {
-       "type": "float"
-     },
-     "end": {
-       "type": "float"
-     }
-     
-   }
- }
-}
-
-DELETE _ingest/pipeline/clauses-embeddings
-PUT _ingest/pipeline/clauses-embeddings
-{
- "description": "Clauses embedding pipeline",
- "processors": [
-   {
-      "inference": {
-        "model_id": ".elser_model_1",
-        "target_field": "text_elser",
-        "field_map": { 
-          "text": "text_field"
-        },
-        "inference_config": {
-          "text_expansion": { 
-            "results_field": "tokens"
-          }
-        }
-      }
-    }
- ],
- "on_failure": [
-   {
-     "set": {
-       "description": "Index document to 'failed-<index>'",
-       "field": "_index",
-       "value": "failed-{{{_index}}}"
-     }
-   },
-   {
-     "set": {
-       "description": "Set error message",
-       "field": "ingest.failure",
-       "value": "{{_ingest.on_failure_message}}"
-     }
-   }
- ]
-}
-
-DELETE /voices
-PUT /voices
-{
- "mappings": {
-   "properties": {
-     "example.url": {
-       "type": "keyword"
-     },
-     "example.start": {
-       "type": "float"
-     },
-     "example.stop": {
-       "type": "float"
-     },
-     
-     "speaker.name": {
-       "type": "keyword"
-     },
-     "speaker.title": {
-       "type": "keyword"
-     },
-     "speaker.company": {
-       "type": "keyword"
-     },
-     "speaker.email": {
-       "type": "keyword"
-     },
-     
-     "voice_vector": {
-       "type": "dense_vector",
-       "dims": 192,
-       "index": true,
-       "similarity": "cosine"
-     }
-   }
- }
-}
-```
-
 ## Media Processing Instance
 
-I selected a `g4dn.xlarge` EC2 instance type with a single NVIDIA T4 Tensor Core to handle the ML portion of this workload. I found this provided a good balance between cost (~ 0.50 per minute) and CPU/GPU power (processing ~1 hour of video in about 10 minutes). That said, this demo should run in any modern CUDA-powered environment. I created a 500GB root volume to contain the requisite ML models and temporary media. I used the Ubuntu 22 LTS AMI.
+I selected a `g4dn.xlarge` EC2 instance type with a single NVIDIA T4 Tensor Core to handle the ML portion of this workload. I found this provided a good balance between cost (~ 0.50 per minute) and CPU/GPU power (processing ~1 hour of video in about 10 minutes). That said, this demo should run on any modern CUDA-powered environment. I created a 500GB root volume to contain the requisite ML models and temporary media. I used the Ubuntu 22 LTS AMI.
 
-### Install Dev Tools
+### Setup environment vars
 
-Some of the dependencies require build tooling to be available.
-
-```
-sudo apt update 
-sudo apt install build-essential
-```
-
-### Install Docker
-
-https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#getting-started
-
-
-sudo docker run --rm --runtime=nvidia --gpus all --env-file env.vars -v $PWD/prj:/prj -v /usr/local/cuda:/usr/local/cuda -v $PWD/ingest:/ingest sha256:89d1349781e60128e5fdcbae1496dd4d1e47078ba3d6466c4fc83c576bd70f00 /ingest/digikey-power.mp4 http://test.com/video.mp4 04/19/23 "DIP Switches 101" tutorial digikey
-
-### Install NVIDIA GPU Drivers
-
-You will need to install NVIDIA GPU drivers and CUDA libraries for your selected GPU. In my case, I used the following:
+Create a file in your home directory on the Media Processing Instance with the following environment variables:
 
 ```
-mkdir -p ~/support/nvidia
-cd ~/support/nvidia
-wget https://us.download.nvidia.com/tesla/470.199.02/NVIDIA-Linux-x86_64-515.65.01.run
-chmod a+x NVIDIA-Linux-x86_64-515.65.01.run
-sudo ./NVIDIA-Linux-x86_64-515.65.01.run
+# for media storage
+AWS_S3_BUCKET=
+
+#for huggingface models
+HF_TOKEN=
+
+#for export to elasticsearch
+ES_ENDPOINT=
+ES_USER=
+ES_PASS=
+
+#optional if you want to use OpenAI for Q&A
+OPENAI_API_KEY=
+OPENAI_BASE=
+OPENAI_DEPLOYMENT_ID=
+OPENAI_MODEL=
+OPENAI_API_VERSION=
 ```
-
-```
-wget https://developer.download.nvidia.com/compute/cuda/11.7.1/local_installers/cuda_11.7.1_515.65.01_linux.run
-sudo sh cuda_11.7.1_515.65.01_linux.run
-```
-
-See https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html for more info regarding installation of GPU drivers on EC2 instances.
-
-
-### Install Anaconda
-
-We use Anacoda ("conda") to manage our Python environment:
-
-```
-mkdir -p ~/support/anaconda
-cd ~/support/anaconda
-wget https://repo.anaconda.com/archive/Anaconda3-2023.03-1-Linux-x86_64.sh
-chmod a+x Anaconda3-2023.03-1-Linux-x86_64.sh
-./Anaconda3-2023.03-1-Linux-x86_64.sh
-```
-
-You will need to exit and re-enter your ssh session for the conda environment to be in effect.
-
-### Download Source
-
-```
-cd ~
-git clone https://github.com/ty-elastic/intheirownwords.git
-cd intheirownwords
-```
-
-### Create and Activate Python Environment
-
-Create a new Python 3.10 environment via:
-```
-conda create --name intheirownwords python=3.10
-conda env config vars set CUDA_HOME="/usr/local/cuda"
-```
-
-Once the environment is created, you will need to activate it via `conda activate intheirownwords` with each new shell instance.
 
 ### Install Dependencies
 
 ```
-# base dependencies for pytorch
-conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.7 -c pytorch -c nvidia
-
-# install tesseract binaries
-conda install -c conda-forge tesseract
-
-# install required python libs
-pip install git+https://github.com/pyannote/pyannote-audio.git@develop
-pip install -r requirements.txt
+git clone https://github.com/ty-elastic/intheirownwords.git
+cd intheirownwords/setup
+./ubuntu.sh
+./es.sh
 ```
-
-### Environment Variables
-
-Create a local shell script (`vars.sh`) to define the following variables:
-
-```
-# for s3 storage of ingested video and image files
-export AWS_DEFAULT_REGION=""
-export AWS_ACCESS_KEY_ID=""
-export AWS_SECRET_ACCESS_KEY=""
-export AWS_S3_BUCKET=""
-
-# for huggingface models
-export HF_TOKEN=""
-
-# for export to elasticsearch
-export ES_ENDPOINT="" # copied from Elastic Cloud Deployments page
-export ES_USER="elastic"
-export ES_PASS="" # password provided upon Elastic Cloud instance creation
-
-# local disk temp prj directory
-export PROJECT_DIR="./prj"
-```
-
-And export those variables with each new shell instance (`source vars.sh`).
 
 ## Run
 

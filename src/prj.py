@@ -4,7 +4,9 @@ import uuid
 import ffmpeg
 import s3
 from datetime import datetime
-import re
+
+#local disk temp prj directory
+PROJECT_DIR = "prj"
 
 SAMPLE_RATE = 16000
 

@@ -62,7 +62,7 @@ fi
 echo "building ui container..."
 docker build -t intheirownwords-ui -f ../Dockerfile.ui ../
 
-if "$develop"; then
+if [ "$develop" == "true" ]; then
   # install conda
   echo "installing conda..."
   CONDA_DIR=/opt/conda
