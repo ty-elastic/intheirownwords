@@ -75,7 +75,7 @@ cd intheirownwords
 
 ### Setup environment vars
 
-Create a file named `env.vars` in the `/home/ubuntu/intheirownwords/` directory on the EC2 instance with the following environment variables:
+Create a file named `env.vars` in the `/home/ubuntu/intheirownwords/` directory on the EC2 instance with the following environment variables (do not wrap the values in quotes):
 
 ```
 # for media storage
@@ -99,6 +99,8 @@ cd /home/ubuntu/intheirownwords/setup
 ./ubuntu.sh
 ./es.sh
 ```
+
+After install, and before use, please logout and log back into your EC2 instance to ensure docker is available without use of sudo.
 
 If you intend to further develop this demo, you can run `./ubuntu.sh -d true` which will install the tools required to run directly on the host.
 
