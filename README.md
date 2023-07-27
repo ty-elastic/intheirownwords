@@ -50,9 +50,27 @@ Some of the models require a [Hugging Face](https://huggingface.co) token and ac
 
 You will need a modern Elastic instance with sufficient ML resources (at least 4GB of RAM) to support this demo. You can start a 2 week free trial of Elastic Cloud [here](https://cloud.elastic.co/registration). Be sure to select "4 GB RAM" for the Machine Learning instance type. When you create the instance, you will be provided a password for the `elastic` user; make note of it. Additionally, from the Deployments page, you will need the endpoint of your Elasticsearch instance.
 
-## Media Processing Instance
+## Media Processing
+
+### Ingest
+
+Because many content sites do not permit anonymous, external playback of video, and because of the variety of formats possible, this demo requires you to externally download video, possibly transcode it (to a format ingestible by ffmpeg), and then upload it to your Media Processing Instance.
+
+I have found the [HLS Downloader extension for Chrome](https://webextension.org/listing/hls-downloader.html) to be a reasonably good way of downloading exemplary video content from web sites. 1280x720p is generally a good resolution choice (higher resolution => longer processing time, but better slide OCR). In some instances, you may need to use `ffmpeg` to combine seperate video and audio renditions.
+
+After you have a `.mkv` or `.mp4` file, upload it to your Media Processing Instance in the `/home/ubuntu/intheirownwords/ingest` folder. 
+
+### Storage For Playback
+
+Because many content sites do not permit anonymous, external playback of video, this demo will upload your video to a publicly-accessible s3 bucket to enable the UI to later play it back. The s3 bucket is assumed to be available in the same region as your Media Processing Instance. You will need to setup the bucket with:
+* [anonymous read permissions and static https hosting](https://docs.aws.amazon.com/AmazonS3/latest/userguide/HostingWebsiteOnS3Setup.html)
+* [an IAM allowing write permissions from your s3 instance](https://repost.aws/knowledge-center/ec2-instance-access-s3-bucket)
+
+### EC2 Instance
 
 I selected a `g4dn.xlarge` EC2 instance type with a single NVIDIA T4 Tensor Core to handle the ML portion of this workload. I found this provided a good balance between cost (~ 0.50 per minute) and CPU/GPU power (processing ~1 hour of video in about 10 minutes). That said, this demo should run on any modern CUDA-powered environment. I created a 500GB root volume to contain the requisite ML models and temporary media. I used the Ubuntu 22 LTS AMI.
+
+If this same instance will be serving the UI, you will need to update the inbound security rules to allow port `8501` from any host.
 
 ### Setup environment vars
 
@@ -80,6 +98,8 @@ OPENAI_API_VERSION=
 
 ### Install Dependencies
 
+The following will setup dependencies on your EC2 instance to run the demo from within docker. It will also setup requisite dependencies within Elasticsearch.
+
 ```
 git clone https://github.com/ty-elastic/intheirownwords.git
 cd intheirownwords/setup
@@ -87,27 +107,25 @@ cd intheirownwords/setup
 ./es.sh
 ```
 
+If you intend to further develop this demo, you can run `./ubuntu.sh -d true` which will install the tools required to run on the host.
+
+If you want to install and run just the UI on a seperate EC2 instance (without a GPU), you can run `./ubuntu.sh -uionly true` which will skip installation of GPU-related tooling.
+
 ## Run
 
 ### Content Ingest
 
 ```
-conda activate intheirownwords
-source ./vars.sh
-python main.py content_path content_date content_name content_type content_source
+cd /home/ubuntu/intheirownwords
+./ingest-run.sh (ingest path) (original source url) (date) (title) (type) (origin)
+# ./ingest-run.sh ingest/test.mp4 http://elastic.co/blog/test 07/27/23 test webinar elastic
 ```
 
 ### Search
 
 ```
-conda activate intheirownwords
-source ./vars.sh
-streamlit run ui.py
+cd /home/ubuntu/intheirownwords
+./ui-run.sh
 ```
 
 # Future Work
-* Dockerfile
-* Detect slides in video
-  * use motion detection to determine part of video not moving
-  * use EAST text block detection to find a group of text blocks in non-moving video
-  * use EAST text block detection to ignore very dense groups of text blocks (probably a demo)
