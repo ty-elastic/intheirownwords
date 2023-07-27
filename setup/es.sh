@@ -1,5 +1,7 @@
 #!/bin/bash
 
+Q_AND_A_MODEL="deepset__roberta-base-squad2"
+
 git clone https://github.com/elastic/eland.git
 docker build -t elastic/eland eland
 sudo groupadd docker
@@ -11,8 +13,6 @@ source ../env.vars
 set +o allexport
 
 ELASTICSEARCH_URL="https://${ES_USER}:${ES_PASS}@${ES_ENDPOINT}:443"
-Q_AND_A_MODEL="deepset__roberta-base-squad2"
-
 docker run -it --rm elastic/eland \
     eland_import_hub_model \
       --url $ELASTICSEARCH_URL \

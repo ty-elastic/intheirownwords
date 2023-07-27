@@ -16,11 +16,15 @@ sudo apt update
 sudo apt install -y build-essential
 
 if [ "$uionly" == "false" ]; then
-  # install nvidia driver and CUDA toolkit
-  echo "install nvidia driver and CUDA toolkit (this can take some time)..."
-  wget https://developer.download.nvidia.com/compute/cuda/11.7.1/local_installers/cuda_11.7.1_515.65.01_linux.run
-  sudo sh cuda_11.7.1_515.65.01_linux.run --silent --driver --toolkit
-  nvidia-smi
+  if [[ $(which nvidia-smi) ]]; then
+    echo "nvidia driver is installed."
+  else
+    # install nvidia driver and CUDA toolkit
+    echo "install nvidia driver and CUDA toolkit (this can take some time)..."
+    wget https://developer.download.nvidia.com/compute/cuda/11.7.1/local_installers/cuda_11.7.1_515.65.01_linux.run
+    sudo sh cuda_11.7.1_515.65.01_linux.run --silent --driver --toolkit
+    nvidia-smi
+  fi
 fi
 
 # install docker
@@ -31,7 +35,6 @@ else
   curl https://get.docker.com | sh \
     && sudo systemctl --now enable docker
 
-  sudo groupadd docker
   sudo usermod -aG docker $USER
   newgrp docker
 fi

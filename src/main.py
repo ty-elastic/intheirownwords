@@ -1,4 +1,4 @@
-import batteries
+import project
 import video
 import itt
 import stt
@@ -24,8 +24,8 @@ def main():
 def process(input, source_url, title, date, kind, origin, enable_write):
     start_time = time.time()
 
-    project = batteries.create_project(input, source_url, title, date, kind, origin, enable_write)
-    batteries.conform_audio(project)
+    project = project.create_project(input, source_url, title, date, kind, origin, enable_write)
+    project.conform_audio(project)
 
     video.detect_scenes(project)
     itt.frames_to_text(project)
@@ -41,6 +41,6 @@ def process(input, source_url, title, date, kind, origin, enable_write):
     end_time = time.time()
     print (end_time - start_time)
     
-    batteries.delete_project(project)
+    project.delete_project(project)
 
 main()
