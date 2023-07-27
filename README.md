@@ -52,7 +52,7 @@ You will need a modern Elastic (>= 8.9) instance with sufficient ML resources (a
 
 ## Media Storage
 
-Because many content sites do not permit anonymous, external playback of video, this demo will upload your ingested video to a publicly-accessible s3 bucket to enable the UI to later play it back. The s3 bucket is assumed to be available in the same region as your Media Processing Instance. You will need to setup the bucket with:
+Because many content sites do not permit anonymous, external playback of video, this demo will upload your ingested video to a publicly-accessible s3 bucket to enable the UI to later play it back. The s3 bucket is assumed to be available in the same region as your EC2 Instance. You will need to setup the bucket with:
 * [anonymous read permissions and static https hosting](https://docs.aws.amazon.com/AmazonS3/latest/userguide/HostingWebsiteOnS3Setup.html)
 * [an IAM allowing write permissions from your s3 instance](https://repost.aws/knowledge-center/ec2-instance-access-s3-bucket)
 
@@ -128,7 +128,7 @@ After you have a `.mkv` or `.mp4` file, upload it to your EC2 instance into the 
 Execute the following commands, where:
 | Field                 | Description                           |
 | --------------------  | ------------------------------------- |
-| (ingest path)         | relative path to media file to ingest |
+| (ingest path)         | relative path (starting with /home/ubuntu/intheirownwords) to media file to ingest |
 | (original source url) | URL from where the media was scrapped; useful when later tagging speakers/voices |
 | (date) | date when video was recorded |
 | (title) | video title |
@@ -151,9 +151,9 @@ cd /home/ubuntu/intheirownwords
 ./ui-run.sh
 ```
 
-and browse to the External URL provided (note, remember to open port 8501 on your EC2 instance).
+and browse to the External URL provided (remember to open port 8501 on your EC2 instance).
 
-The search returns the relevant video, cued to the relevant section, with the relevant quote. It also uses a simple Q&A model (hosted on Elasticsearch) to try to extract a specific answer to the question provided. It further extracts the containing sentence for context. Finally, if OPENAI_* env variables are defined, it will run the extracted text and question through OpenAI for a summarized answer as a reference to the other results returned.
+The search returns the relevant video, cued to the relevant section, with the relevant quote. It also uses a simple Q&A model (hosted on Elasticsearch) to try to extract a specific answer to the question provided. It further extracts the containing sentence for context. Finally, if OPENAI_* env variables are defined, it will run the extracted text and question through OpenAI for a summarized answer as a (hopefully somewhat lackluster) reference to the other results returned.
 
 ## Voice ID
 
