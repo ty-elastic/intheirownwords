@@ -147,6 +147,8 @@ cd /home/ubuntu/intheirownwords
 
 and browse to the External URL provided (note, remember to open port 8501 on your EC2 instance).
 
+The search returns the relevant video, cued to the relevant section, with the relevant quote. It also uses a simple Q&A model (hosted on Elasticsearch) to try to extract a specific answer to the question provided. It further extracts the containing sentence for context. Finally, if OPENAI_* env variables are defined, it will run the extracted text and question through OpenAI for a summarized answer as a reference to the other results returned.
+
 ## Voice ID
 
 This demo uses Elasticsearch as a vector database to associate "voice prints" with speaker metadata. This allows the system to automatically tag repeat speakers in videos. After ingest, start the UI, and go to the "voices" tab on the left. Update each unknown speaker with associated metadata. The speaker metadata is linked at search time; you do not need to reimport videos after tagging.
