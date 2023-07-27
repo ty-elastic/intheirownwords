@@ -21,7 +21,7 @@ sudo docker run -it --rm elastic/eland \
 curl -XPUT "$ELASTICSEARCH_URL/_ml/trained_models/.elser_model_1" -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d'
 {
   "input": {
-	"field_names": ["text_field"]
+	  "field_names": ["text_field"]
   }
 }'
 curl -XPOST "$ELASTICSEARCH_URL/_ml/trained_models/.elser_model_1/deployment/_start?deployment_id=for_search" -H "kbn-xsrf: reporting"
