@@ -29,7 +29,41 @@ Keyword search of STT transcriptions (e.g., search over sentences in a caption t
 
 # Architecture
 
+## Processing
+
 ![Architecture](doc/arch.jpg?raw=true "Architecture")
+
+## System
+
+```mermaid
+flowchart TB
+    subgraph s3
+        bucket
+    end
+
+    subgraph elastic
+        clauses
+        voices
+    end
+
+    subgraph EC2
+        subgraph ingest
+            intake ==> bucket
+            intake ==> processing(processing w/GPU)
+            processing ==> clauses
+            processing ==> voices
+        end
+        subgraph ui
+            search ==> clauses
+            search ==> voices
+            search == "URL" ==> player
+            player ==> bucket
+        end
+    end
+
+    user ==> search
+    file ==> intake
+```
 
 # Tenets
 
