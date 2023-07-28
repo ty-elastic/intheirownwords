@@ -88,7 +88,7 @@ You will need a modern Elastic (>= 8.9) instance with sufficient ML resources (a
 
 Because many content sites do not permit anonymous, external playback of video, this demo will upload your ingested video to a publicly-accessible s3 bucket to enable the UI to later play it back. The s3 bucket is assumed to be available in the same region as your EC2 Instance. You will need to setup the bucket with:
 * [anonymous read permissions and static https hosting](https://docs.aws.amazon.com/AmazonS3/latest/userguide/HostingWebsiteOnS3Setup.html)
-* [an IAM allowing write permissions from your s3 instance](https://repost.aws/knowledge-center/ec2-instance-access-s3-bucket)
+* [an IAM allowing write permissions from your EC2 instance](https://repost.aws/knowledge-center/ec2-instance-access-s3-bucket)
 
 Obviously, for production use cases, you would likely host your own video content; the demo could be [modified accordingly](https://github.com/ty-elastic/intheirownwords/blob/1e4dbef4d48b35cffc146da860b778485137a950/src/prj.py#L53).
 
