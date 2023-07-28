@@ -103,8 +103,8 @@ If this same EC2 instance will be serving the UI, you will need to update the in
 ### Download the project
 
 ```
+cd /home/ubuntu
 git clone https://github.com/ty-elastic/intheirownwords.git
-cd intheirownwords
 ```
 
 ### Setup environment vars
