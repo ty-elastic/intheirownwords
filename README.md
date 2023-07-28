@@ -112,7 +112,7 @@ git clone https://github.com/ty-elastic/intheirownwords.git
 Create a file named `env.vars` in the `/home/ubuntu/intheirownwords/` directory on the EC2 instance with the following environment variables (do not wrap the values in quotes):
 
 ```
-# for media storage
+#for media storage
 AWS_S3_BUCKET=
 
 #for huggingface models
