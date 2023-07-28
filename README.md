@@ -189,3 +189,6 @@ The search returns the relevant video, cued to the relevant section, with the re
 This demo uses Elasticsearch as a vector database to associate "voice prints" with speaker metadata. This allows the system to automatically tag repeat speakers in videos. After ingest, start the UI, and go to the "voices" tab on the left. Update each unknown speaker with associated metadata. The speaker metadata is linked at search time; you do not need to reimport videos after tagging.
 
 # Future Work
+
+* find primary cluster of rects in OCR to try to identify slide region to improve scene detection
+* use RRF (8.9) to combine ELSER (clause) and BM25 (slide keywords)
