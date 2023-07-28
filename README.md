@@ -126,7 +126,7 @@ ES_PASS=
 
 ### Install Dependencies
 
-The following will setup dependencies on your EC2 instance to run the demo using docker containers. It will also setup requisite dependencies within Elasticsearch.
+`setup/ubuntu.sh` will setup dependencies on your EC2 instance to run the demo using docker containers. `setup/es.sh` will setup requisite dependencies within Elasticsearch.
 
 ```
 cd /home/ubuntu/intheirownwords/setup
