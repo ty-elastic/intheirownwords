@@ -158,10 +158,10 @@ Execute the following commands, where:
 | Field                 | Description                           |
 | --------------------  | ------------------------------------- |
 | (ingest path)         | relative path (starting with /home/ubuntu/intheirownwords) to media file to ingest |
-| (original source url) | URL from where the media was scrapped; useful when later tagging speakers/voices |
+| (original source url) | URL from where the media was scraped; useful when later tagging speakers/voices |
 | (date) | date when video was recorded |
 | (title) | video title |
-| (type) | type of content (e.g., webinar); could be used to filter in UI |
+| (type) | type of content (e.g., webinar); can be used for UI/search filters |
 | (origin) | origin of content (e.g., "elastic"); useful for multi-tenant setups |
 
 ```
