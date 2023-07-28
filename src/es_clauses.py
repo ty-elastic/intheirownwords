@@ -34,10 +34,6 @@ def extract_keywords(search_text):
         return keywords[0][0]
     return None
 
-
-
-
-
 def get_origins():
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
     with Elasticsearch([url], verify_certs=True) as es:
