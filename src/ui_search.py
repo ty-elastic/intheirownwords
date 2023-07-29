@@ -14,8 +14,6 @@ st.set_page_config(layout="wide", page_title=APP_NAME)
 st.image('https://images.contentstack.io/v3/assets/bltefdd0b53724fa2ce/blt601c406b0b5af740/620577381692951393fdf8d6/elastic-logo-cluster.svg', width=100)
 st.title(APP_NAME)
 
-job.start()
-
 def escape_markdown(text: str, version: int = 1, entity_type: str = None) -> str:
     """
     Helper function to escape telegram markup symbols.

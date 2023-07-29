@@ -58,6 +58,7 @@ def create_project(input, source_url, title, date, kind, origin, enable_write, e
         "enable_scenes": enable_scenes,
         "scenes": []
     }
+    print(project)
 
     project['media_url'] = s3.upload_file(project, None, media_path)
     return project
@@ -69,7 +70,7 @@ def process(input, source_url, title, date, kind, origin, enable_write, enable_s
     project = prj.create_project(input, source_url, title, date, kind, origin, enable_write, enable_scenes)
     prj.conform_audio(project)
 
-    if prj['enable_scenes']:
+    if project['enable_scenes']:
         video.detect_scenes(project)
         itt.frames_to_text(project)
 

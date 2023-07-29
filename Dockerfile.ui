@@ -27,9 +27,8 @@ COPY setup/ui-requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 COPY src/es_*.py .
-COPY src/llm.py .
-COPY src/ui.py .
+COPY src/ui_search.py .
 
-COPY src/pages/*.py pages/
+COPY src/pages/voices.py pages/
 
-ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "intheirownwords", "streamlit", "run", "ui.py"]
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "intheirownwords", "streamlit", "run", "ui_search.py"]

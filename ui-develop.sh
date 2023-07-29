@@ -6,4 +6,4 @@ set +o allexport
 
 source /opt/conda/etc/profile.d/conda.sh
 conda activate intheirownwords
-streamlit run src/ui.py
+streamlit run src/ui_search.py
