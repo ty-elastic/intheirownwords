@@ -15,7 +15,6 @@ def detect_scenes(project):
     save_images(scene_list, video, num_images=3, image_extension='jpg', encoder_param=90, image_name_template='$SCENE_NUMBER-$IMAGE_NUMBER', output_dir=frames_path, show_progress=False, video_manager=None)
     # assume last image is the most complete in slide build
 
-    project['scenes'] = []
     for i, scene in enumerate(scene_list):
         frame_num = i+1
         filepath = frames_path + "/" + f"{frame_num:03}-03" + ".jpg"
