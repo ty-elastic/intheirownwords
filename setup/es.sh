@@ -157,6 +157,9 @@ curl -XPUT "$ELASTICSEARCH_URL/voices" -H "kbn-xsrf: reporting" -H "Content-Type
      "speaker.email": {
        "type": "keyword"
      },
+     "origin": {
+       "type": "keyword"
+     },
      
      "voice_vector": {
        "type": "dense_vector",

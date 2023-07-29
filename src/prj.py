@@ -4,6 +4,13 @@ import uuid
 import ffmpeg
 import s3
 from datetime import datetime
+import prj
+import slides
+import stt
+import split
+import es_clauses
+import time
+import json
 
 #local disk temp prj directory
 PROJECT_DIR = "prj"
@@ -27,7 +34,7 @@ def conform_audio(project):
     except ffmpeg.Error as e:
         raise RuntimeError(f"Failed to load audio: {e.stderr.decode()}") from e
 
-def create_project(input, source_url, title, date, kind, origin, enable_write):
+def create_project(input, source_url, title, date, kind, origin, enable_write, enable_slides):
 
     project_id = str(uuid.uuid4())
     prj_path = os.path.join(PROJECT_DIR, project_id)
@@ -47,10 +54,33 @@ def create_project(input, source_url, title, date, kind, origin, enable_write):
         "kind": kind,
         "origin": origin,
         "source_url": source_url,
-        "enable_write": enable_write
+        "enable_write": enable_write,
+        "enable_slides": enable_slides,
+        "scenes": []
     }
+    print(project)
 
     project['media_url'] = s3.upload_file(project, None, media_path)
     return project
 
-#create_prj("/hack/test/otel.mp4", True)
+
+def process(input, source_url, title, date, kind, origin, enable_write, enable_scenes):
+    start_time = time.time()
+
+    project = prj.create_project(input, source_url, title, date, kind, origin, enable_write, enable_scenes)
+    prj.conform_audio(project)
+
+    if project['enable_slides']:
+        slides.detect_slides(project)
+
+    segments = stt.speech_to_text(project)
+
+    split.split(project, segments)
+
+    if project['enable_write']:
+        es_clauses.add_clauses(project)
+
+    end_time = time.time()
+    print (end_time - start_time)
+    
+    prj.delete_project(project)

@@ -63,4 +63,5 @@ def speech_to_text(project):
     torch.cuda.empty_cache()
     del diarize_model
 
+    #print(result["segments"])
     return result["segments"]

@@ -4,6 +4,8 @@ import es_ml
 import time
 import os
 import re
+import job
+
 
 APP_NAME = "Informative Video Search Demo"
 
@@ -11,6 +13,12 @@ st.set_page_config(layout="wide", page_title=APP_NAME)
 
 st.image('https://images.contentstack.io/v3/assets/bltefdd0b53724fa2ce/blt601c406b0b5af740/620577381692951393fdf8d6/elastic-logo-cluster.svg', width=100)
 st.title(APP_NAME)
+
+METHOD_RRF_SUB="RRF Sub"
+METHOD_RRF="RRF"
+METHOD_HYBRID="Hybrid"
+
+SEARCH_METHODS = [es_clauses.METHOD_HYBRID, es_clauses.METHOD_RRF]
 
 def escape_markdown(text: str, version: int = 1, entity_type: str = None) -> str:
     """
@@ -45,12 +53,13 @@ with st.form("clauses_query", clear_on_submit=False):
     origins = es_clauses.get_origins()
     origin = st.selectbox('Source', origins)
     query = st.text_input("Query: ")
+    method = st.selectbox('Search Method', SEARCH_METHODS)
     question_button = st.form_submit_button("Search")
 
 if question_button:
     print(origin)
     st.cache_data.clear()
-    results = es_clauses.find_clauses(origin, query)
+    results = es_clauses.find_clauses(origin, query, method)
 
     if results != None:
         print(results['text'])
@@ -63,10 +72,11 @@ if question_button:
                     time.sleep(0.1)
                 placeholder.video(results['media_url'], format="video/mp4", start_time=int(results['start']))
 
+            st.write("---")
+            if 'scene.frame_url' in results:
+                st.image(results['scene.frame_url'])
+
         with col2:
-            escaped = escape_markdown(results['text'])
-            text = "### :green[_\"" + escaped + "\"_]" + "\r\n"
-            st.markdown(text)
             if 'speaker.name' in results:
                 title = "**" + results['speaker.name'] + "**, " + results['speaker.title'] + ", " + results['speaker.company']
                 if 'speaker.email' in results:
@@ -77,19 +87,23 @@ if question_button:
             text = results['date'].strftime('%Y-%m-%d')
             st.markdown(text)
 
-            st.write("---")
-            st.write("## ML Q&A using ELSER Results")
             answer = es_ml.ask_question(results['text'], query)
+            if answer is not None:
+                context_answer = es_ml.find_sentence_that_answers_question(results['text'], query, answer)
+                if context_answer is not None:
+                    escaped = escape_markdown(context_answer)
+                    text = "### :orange[_\"" + escaped + "\"_]" + "\r\n"
+                    st.markdown(text)
+                    st.write("---")
+
+            escaped = escape_markdown(results['text'])
+            text = "### :green[_\"" + escaped + "\"_]" + "\r\n"
+            st.markdown(text)
+            
+            st.write("---")
+
             st.write(f"**{answer}**")
 
-            answer = es_ml.find_sentence_that_answers_question(results['text'], query, answer)
-            escaped = escape_markdown(answer)
-            text = "### :orange[_\"" + escaped + "\"_]" + "\r\n"
-            st.markdown(text)
-
-        # with col3:
-        #     if 'scene.frame_url' in results:
-        #         st.image(results['scene.frame_url'])
 
         #st.write(results)    
     

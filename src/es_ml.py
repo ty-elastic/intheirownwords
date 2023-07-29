@@ -4,6 +4,7 @@ import nltk.data
 import os
 
 Q_AND_A_MODEL = "deepset__roberta-base-squad2"
+SENTENCE_TOKENIZER = "tokenizers/punkt/english.pickle"
 
 def ask_question(context, question, strip=True):
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
@@ -11,7 +12,13 @@ def ask_question(context, question, strip=True):
         ml = MlClient(es)
 
         config = {"question_answering": {
-            "question": question
+            "question": question,
+            "tokenization": {
+                "roberta": {
+                "truncate": "second",
+                "span": -1          
+                }
+            }
         }}
 
         res = ml.infer_trained_model(model_id=Q_AND_A_MODEL, docs=[{ "text_field": context}], inference_config=config)
@@ -23,7 +30,7 @@ def ask_question(context, question, strip=True):
                 return res['inference_results'][0]
 
 def find_sentence_that_answers_question(context, question, answer):
-    tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+    tokenizer = nltk.data.load(SENTENCE_TOKENIZER)
     sentences = tokenizer.tokenize(context)
     candidates = []
     for sentence in sentences:

@@ -1,6 +1,5 @@
 FROM ubuntu:latest
 
-
 # https://pythonspeed.com/articles/activate-conda-dockerfile/
 
 WORKDIR /home
@@ -13,6 +12,7 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# libgl1
 RUN apt-get update \
     && apt-get install -y ffmpeg
 #     && apt-get install -y libsm6 \
@@ -31,8 +31,10 @@ SHELL ["conda", "run", "-n", "intheirownwords", "/bin/bash", "-c"]
 
 RUN conda install -y pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.7 -c pytorch -c nvidia
 
-# install tesseract binaries
-RUN conda install -y -c conda-forge tesseract
+RUN add-apt-repository -y ppa:alex-p/tesseract-ocr5 \
+    && apt-get update \
+    && apt-get install -y tesseract-ocr
+RUN wget -O /usr/share/tesseract-ocr/5/tessdata/eng.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata
 
 # install required python libs
 RUN pip install git+https://github.com/pyannote/pyannote-audio.git@develop
@@ -40,5 +42,6 @@ COPY setup/ingest-requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 COPY src/*.py .
+COPY src/pages/*.py pages/
 
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "intheirownwords", "python", "main.py"]

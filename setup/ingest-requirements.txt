@@ -4,9 +4,10 @@ ffmpeg-python
 scenedetect[opencv]
 boto3
 pytesseract
+imagehash
 
 elasticsearch
-sentence-transformers
+#sentence-transformers
 yake
 nltk
 
