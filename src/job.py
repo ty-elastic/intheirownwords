@@ -46,7 +46,7 @@ def process_loop():
         
 def start():
     t = threading.Thread(target=process_loop)
-    t.daemon = True
+    t.daemon = False
     t.start()
 
 def get_status():
