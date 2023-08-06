@@ -11,15 +11,11 @@ class DiarizationPipeline:
         use_auth_token=None,
         device: Optional[Union[str, torch.device]] = "cpu",
     ):
-        print("WAITWAIT")
         if isinstance(device, str):
             device = torch.device(device)
-        print("WAITWAIT2", use_auth_token, device, model_name)
         self.model = Pipeline.from_pretrained(model_name, use_auth_token=use_auth_token).to(device)
-        print("DONE1")
 
     def __call__(self, audio, min_speakers=None, max_speakers=None):
-        print("CALL")
 
         segments, embeddings = self.model(audio, min_speakers=min_speakers, max_speakers=max_speakers, return_embeddings=True)
 
@@ -28,8 +24,6 @@ class DiarizationPipeline:
 
         diarize_df['end'] = diarize_df[0].apply(lambda x: x.end)
         diarize_df.rename(columns={2: "speaker"}, inplace=True)
-
-        print("DONE2")
 
         #print(diarize_df)
         return diarize_df, embeddings
