@@ -22,7 +22,7 @@ if st.session_state["authentication_status"]:
 
   if upload_button:
 
-      input = os.path.join("ingest",uploaded_file.name)
+      input = os.path.join(job.INGEST_DIR,uploaded_file.name)
       with open(input, "wb") as f: 
         f.write(uploaded_file.getbuffer())         
 

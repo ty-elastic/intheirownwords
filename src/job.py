@@ -4,7 +4,9 @@ import threading
 import queue
 import uuid
 from datetime import datetime, date
+import shutil
 
+INGEST_DIR="ingest"
 
 q = queue.Queue()
 jobs = []
@@ -44,6 +46,7 @@ def process_loop():
                         project['enable_scenes'])
             job['status'] = 'complete'
             job['duration'] = datetime.now() - job['started']
+            shutil.rmtree( project['input'], ignore_errors=True)
         except Exception as inst:
             job['status'] = 'error'
             print(inst)
