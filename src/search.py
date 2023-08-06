@@ -5,7 +5,12 @@ import time
 import os
 import re
 import job
+import streamlit_authenticator as stauth
+import yaml
+from yaml.loader import SafeLoader
 
+if 'authentication_status' not in st.session_state:
+    st.session_state['authentication_status'] = False
 
 APP_NAME = "Informative Video Search Demo"
 
@@ -49,61 +54,83 @@ def escape_markdown(text: str, version: int = 1, entity_type: str = None) -> str
 
     return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)
 
-with st.form("clauses_query", clear_on_submit=False):
-    origins = es_clauses.get_origins()
-    origin = st.selectbox('Source', origins)
-    query = st.text_input("Query: ")
-    method = st.selectbox('Search Method', SEARCH_METHODS)
-    question_button = st.form_submit_button("Search")
+if os.path.isfile('auth/users.yaml'):
+    with open('auth/users.yaml') as file:
+        config = yaml.load(file, Loader=SafeLoader)
 
-if question_button:
-    print(origin)
-    st.cache_data.clear()
-    results = es_clauses.find_clauses(origin, query, method)
+        authenticator = stauth.Authenticate(
+            config['credentials'],
+            config['cookie']['name'],
+            config['cookie']['key'],
+            config['cookie']['expiry_days']
+        )
 
-    if results != None:
-        print(results['text'])
-        col1, col2, = st.columns(2)
+        name, authentication_status, username = authenticator.login('Login', 'main')
+        st.session_state["authentication_status"] = authentication_status
+        if authentication_status is False:
+            st.error('Username/password is incorrect')
+        elif authentication_status is None:
+            st.warning('Please enter your username and password')
+else:
+    st.session_state["authentication_status"] = True
 
-        with col1:
-            placeholder = st.empty()
-            with placeholder:
-                with st.spinner('loading...'):
-                    time.sleep(0.1)
-                placeholder.video(results['media_url'], format="video/mp4", start_time=int(results['start']))
+if st.session_state["authentication_status"]:
 
-            st.write("---")
-            if 'scene.frame_url' in results:
-                st.image(results['scene.frame_url'])
+    with st.form("clauses_query", clear_on_submit=False):
+        origins = es_clauses.get_origins()
+        origin = st.selectbox('Source', origins)
+        query = st.text_input("Query: ")
+        method = st.selectbox('Search Method', SEARCH_METHODS)
+        question_button = st.form_submit_button("Search")
 
-        with col2:
-            if 'speaker.name' in results:
-                title = "**" + results['speaker.name'] + "**, " + results['speaker.title'] + ", " + results['speaker.company']
-                if 'speaker.email' in results:
-                    text = "[" + title + "](mailto:" + results['speaker.email'] + ")"
-                else:
-                    text = "" + title
-                st.markdown(text)
-            text = results['date'].strftime('%Y-%m-%d')
-            st.markdown(text)
+        if question_button:
+            print(origin)
+            st.cache_data.clear()
+            results = es_clauses.find_clauses(origin, query, method)
 
-            answer = es_ml.ask_question(results['text'], query)
-            if answer is not None:
-                context_answer = es_ml.find_sentence_that_answers_question(results['text'], query, answer)
-                if context_answer is not None:
-                    escaped = escape_markdown(context_answer)
-                    text = "### :orange[_\"" + escaped + "\"_]" + "\r\n"
+            if results != None:
+                print(results['text'])
+                col1, col2, = st.columns(2)
+
+                with col1:
+                    placeholder = st.empty()
+                    with placeholder:
+                        with st.spinner('loading...'):
+                            time.sleep(0.1)
+                        placeholder.video(results['media_url'], format="video/mp4", start_time=int(results['start']))
+
+                    st.write("---")
+                    if 'scene.frame_url' in results:
+                        st.image(results['scene.frame_url'])
+
+                with col2:
+                    if 'speaker.name' in results:
+                        title = "**" + results['speaker.name'] + "**, " + results['speaker.title'] + ", " + results['speaker.company']
+                        if 'speaker.email' in results:
+                            text = "[" + title + "](mailto:" + results['speaker.email'] + ")"
+                        else:
+                            text = "" + title
+                        st.markdown(text)
+                    text = results['date'].strftime('%Y-%m-%d')
                     st.markdown(text)
+
+                    answer = es_ml.ask_question(results['text'], query)
+                    if answer is not None:
+                        context_answer = es_ml.find_sentence_that_answers_question(results['text'], query, answer)
+                        if context_answer is not None:
+                            escaped = escape_markdown(context_answer)
+                            text = "### :orange[_\"" + escaped + "\"_]" + "\r\n"
+                            st.markdown(text)
+                            st.write("---")
+
+                    escaped = escape_markdown(results['text'])
+                    text = "### :green[_\"" + escaped + "\"_]" + "\r\n"
+                    st.markdown(text)
+                    
                     st.write("---")
 
-            escaped = escape_markdown(results['text'])
-            text = "### :green[_\"" + escaped + "\"_]" + "\r\n"
-            st.markdown(text)
-            
-            st.write("---")
-
-            st.write(f"**{answer}**")
+                    st.write(f"**{answer}**")
 
 
-        #st.write(results)    
-    
+                #st.write(results)    
+                

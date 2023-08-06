@@ -1,8 +1,7 @@
 env.vars
-questions.txt
-es/voices.cmd
 .whisper/
 prj/
+auth/
 ingest/
 
 .DS_Store 

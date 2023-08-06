@@ -7,6 +7,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 from scipy.signal import argrelextrema
 import math
 import nltk.data
+import nltk
+
+nltk.download('punkt')
 
 from sentence_transformers import SentenceTransformer
 import pandas as pd

@@ -74,6 +74,7 @@ def process(input, source_url, title, date, kind, origin, enable_write, enable_s
         slides.detect_slides(project)
 
     segments = stt.speech_to_text(project)
+    print ("done with stt")
 
     split.split(project, segments)
 
