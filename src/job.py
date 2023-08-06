@@ -32,16 +32,21 @@ def process_loop():
         job = [x for x in jobs if x['id'] == project['id']][0]
         print(project)
         job['status'] = 'processing'
-        prj.process(project['input'], 
-                     project['source_url'], 
-                     project['title'], 
-                     project['date'].strftime('%m/%d/%y'), 
-                     project['kind'], 
-                     project['origin'],
-                     True,
-                     project['enable_scenes'])
-        job['status'] = 'complete'
-        job['duration'] = datetime.now() - job['started']
+
+        try:
+            prj.process(project['input'], 
+                        project['source_url'], 
+                        project['title'], 
+                        project['date'].strftime('%m/%d/%y'), 
+                        project['kind'], 
+                        project['origin'],
+                        True,
+                        project['enable_scenes'])
+            job['status'] = 'complete'
+            job['duration'] = datetime.now() - job['started']
+        except Exception as inst:
+            job['status'] = 'error'
+            print(inst)
         q.task_done()
         
 def start():

@@ -1,6 +1,6 @@
 import chunk_text
 
-SCENE_OVERLAP = 5
+SCENE_OVERLAP = 4
 
 def find_scene(project, start, end):
     for scene in project['scenes']:
