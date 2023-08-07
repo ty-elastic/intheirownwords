@@ -68,17 +68,21 @@ def process(input, source_url, title, date, kind, origin, enable_write, enable_s
     start_time = time.time()
 
     project = prj.create_project(input, source_url, title, date, kind, origin, enable_write, enable_scenes)
+    print ("conform_audio")
     prj.conform_audio(project)
 
     if project['enable_slides']:
+        print ("detect_slides")
         slides.detect_slides(project)
 
+    print ("speech_to_text")
     segments = stt.speech_to_text(project)
-    print ("done with stt")
 
+    print ("split")
     split.split(project, segments)
 
     if project['enable_write']:
+        print ("add_clauses")
         es_clauses.add_clauses(project)
 
     end_time = time.time()

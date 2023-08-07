@@ -1,6 +1,7 @@
 import chunk_text
 
 SCENE_OVERLAP = 4
+ELSER_TOKEN_LIMIT = 512
 
 def find_scene(project, start, end):
     for scene in project['scenes']:
@@ -29,25 +30,41 @@ def init_clause(segment, scene, project):
     clause['origin'] = project['origin']
     return clause
 
+def chunk(clause, clause_text_blocks, clauses, segment, scene, project):
+    thoughts = chunk_text.chunking_text(clause_text_blocks)
+    # clause_text_blocks = []
+    for thought in thoughts:
+        clause['text'] = ''
+        for text in thought:
+            if len(clause['text'])+len(text) >= ELSER_TOKEN_LIMIT:
+                print("force segmentation")
+                clauses.append(clause)
+                clause = init_clause(segment, scene, project)
+                clause['text'] = text
+            else:
+                clause['text'] = clause['text'] + ' ' + text
+        clauses.append(clause)
+        clause = init_clause(segment, scene, project)
+    return clause, []
+
 def split(project, segments):
     clauses = []
     clause = None
     clause_text_blocks = []
 
-    for i, segment in enumerate(segments):
+    print(f"segments={len(segments)}")
+    for segment in segments:
         scene = find_scene(project, segment['start'], segment['end'])
         if clause is None:
             clause = init_clause(segment, scene, project)
         if (scene != None and scene['frame_num'] != clause['scene.frame_num']) or (segment['speaker_id'] != clause['speaker.id']):
-            #print("SPLIT")
-            thoughts = chunk_text.chunking_text(clause_text_blocks)
-            clause_text_blocks = []
-            for thought in thoughts:
-                clause['text'] = ' '.join(thought)
-                clauses.append(clause)
-                clause = init_clause(segment, scene, project)
+            print("SPLIT")
+            clause, clause_text_blocks = chunk(clause, clause_text_blocks, clauses, segment, scene, project)
         clause_text_blocks.append(segment['text'].strip())
         clause['end'] = segment['end']
-        
+    if len(clause_text_blocks) > 0:
+        print("last")
+        clause, clause_text_blocks = chunk(clause, clause_text_blocks, clauses, segment, scene, project)
+
     project['clauses'] = clauses
     return clauses
