@@ -38,6 +38,7 @@ if [ "$models" == "false" ]; then
     }
   }'
   curl -XPOST "$ELASTICSEARCH_URL/_ml/trained_models/.elser_model_1/deployment/_start?deployment_id=for_search" -H "kbn-xsrf: reporting"
+fi
 
   curl -XDELETE "$ELASTICSEARCH_URL/clauses" -H "kbn-xsrf: reporting"
   curl -XPUT "$ELASTICSEARCH_URL/clauses" -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d'
@@ -100,7 +101,6 @@ if [ "$models" == "false" ]; then
     }
   }
   }'
-fi
 
 curl -XDELETE "$ELASTICSEARCH_URL/_ingest/pipeline/clauses-embeddings" -H "kbn-xsrf: reporting"
 curl -XPUT "$ELASTICSEARCH_URL/_ingest/pipeline/clauses-embeddings" -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d'
