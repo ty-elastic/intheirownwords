@@ -15,7 +15,8 @@ if st.session_state["authentication_status"] != True:
 voices = []
 forms = {}
 
-def on_origin_change(origin):
+def on_origin_change():
+    origin = st.session_state['Source']
     print(origin)
     voices = es_voices.get_unassigned_voices(origin)
     forms = {}
@@ -57,4 +58,5 @@ def on_origin_change(origin):
 origins = es_clauses.get_origins()
 origin = st.selectbox('Source', origins, on_change=on_origin_change)
 if len(origins) > 0:
-    on_origin_change(origins[0])
+    st.session_state['Source'] = origins[0]
+    on_origin_change()

@@ -47,15 +47,15 @@ def process_loop():
                         project['enable_scenes'])
             job['status'] = 'complete'
             job['duration'] = datetime.now() - job['started']
-            shutil.rmtree( project['input'], ignore_errors=True)
         except Exception as inst:
             job['status'] = 'error'
             traceback.print_exc()
+        shutil.rmtree( project['input'], ignore_errors=True)
         q.task_done()
         
 def start():
     t = threading.Thread(target=process_loop)
-    t.daemon = False
+    t.daemon = True
     t.start()
 
 def get_status():

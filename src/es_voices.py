@@ -8,7 +8,7 @@ VOICE_CONFIDENCE_THRESHOLD = 0.85
 
 def get_unassigned_voices(origin):
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
-    print(url)
+
     with Elasticsearch([url], verify_certs=True) as es:
 
         query = {
@@ -60,7 +60,7 @@ def update_speaker(speaker_id, speaker_name, speaker_title, speaker_company, spe
 def lookup_speaker_by_id(speaker_id):
 
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
-    print(url)
+
     with Elasticsearch([url], verify_certs=True) as es:
         query = {
             "match": {

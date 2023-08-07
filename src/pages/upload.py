@@ -15,13 +15,13 @@ if st.session_state["authentication_status"] != True:
 
 with st.form("upload", clear_on_submit=True):
     source_url = st.text_input(
-        "URL of page video was scrapped from (for reference): ")
-    title = st.text_input("title: ")
-    date = st.date_input("date recorded: ")
-    kind = st.text_input("kind: (e.g., webinar, tutorial)")
-    origin = st.text_input("origin: (company)")
-    enable_slides = st.checkbox("content contains slides", value=True)
-    uploaded_file = st.file_uploader("Choose a file")
+        "URL of page video was scrapped from (for reference)")
+    title = st.text_input("Title")
+    date = st.date_input("Date Recorded")
+    kind = st.text_input("Media Kind", help="e.g., webinar, tutorial")
+    origin = st.text_input("Media Source", help="company name")
+    enable_slides = st.checkbox("Slide Content?", value=True, help="uncheck if content does not contain slides")
+    uploaded_file = st.file_uploader("Media File", type="mp4", help="use ffmpeg to coerce media into h264+aac/mp4")
     upload_button = st.form_submit_button("Upload")
 
 if upload_button:
