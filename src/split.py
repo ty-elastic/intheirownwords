@@ -37,7 +37,7 @@ def chunk(clause, clause_text_blocks, clauses, segment, scene, project):
         clause['text'] = ''
         for text in thought:
             if len(clause['text'])+len(text) >= ELSER_TOKEN_LIMIT:
-                print("force segmentation")
+                print("forcing segmentation")
                 clauses.append(clause)
                 clause = init_clause(segment, scene, project)
                 clause['text'] = text
@@ -53,17 +53,18 @@ def split(project, segments):
     clause_text_blocks = []
 
     print(f"segments={len(segments)}")
-    for segment in segments:
+    for i, segment in enumerate(segments):
+        if 'speaker_id' not in segment:
+            segment['speaker_id'] = None
         scene = find_scene(project, segment['start'], segment['end'])
         if clause is None:
             clause = init_clause(segment, scene, project)
         if (scene != None and scene['frame_num'] != clause['scene.frame_num']) or (segment['speaker_id'] != clause['speaker.id']):
-            print("SPLIT")
+            print("split by thought or speaker change")
             clause, clause_text_blocks = chunk(clause, clause_text_blocks, clauses, segment, scene, project)
         clause_text_blocks.append(segment['text'].strip())
         clause['end'] = segment['end']
     if len(clause_text_blocks) > 0:
-        print("last")
         clause, clause_text_blocks = chunk(clause, clause_text_blocks, clauses, segment, scene, project)
 
     project['clauses'] = clauses

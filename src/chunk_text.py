@@ -91,7 +91,6 @@ def get_middle_points(embeddings:np.array) -> list:
 def create_embedding(sentences):
     # Encode the sentences using the model
     embeddings = model.encode(sentences)
-    #print('Embeddings for highlights created')
     return sentences, embeddings
 
 def create_df(sentences):

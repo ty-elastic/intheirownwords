@@ -45,23 +45,25 @@ def assign_word_speakers(diarize_df, transcript_result, speakers, fill_nearest=F
             speaker = dia_tmp.groupby("speaker")["intersection"].sum().sort_values(ascending=False).index[0]
             seg["speaker"] = speaker
             seg["speaker_id"] = speakers[speaker]
+        else:
+            seg['speaker_id'] = None
         
         # assign speaker to words
-        if 'words' in seg:
-            for word in seg['words']:
-                if 'start' in word:
-                    diarize_df['intersection'] = np.minimum(diarize_df['end'], word['end']) - np.maximum(diarize_df['start'], word['start'])
-                    diarize_df['union'] = np.maximum(diarize_df['end'], word['end']) - np.minimum(diarize_df['start'], word['start'])
-                    # remove no hit
-                    if not fill_nearest:
-                        dia_tmp = diarize_df[diarize_df['intersection'] > 0]
-                    else:
-                        dia_tmp = diarize_df
-                    if len(dia_tmp) > 0:
-                        # sum over speakers
-                        speaker = dia_tmp.groupby("speaker")["intersection"].sum().sort_values(ascending=False).index[0]
-                        word["speaker"] = speaker
-                        word["speaker_id"] = speakers[speaker]
+        # if 'words' in seg:
+        #     for word in seg['words']:
+        #         if 'start' in word:
+        #             diarize_df['intersection'] = np.minimum(diarize_df['end'], word['end']) - np.maximum(diarize_df['start'], word['start'])
+        #             diarize_df['union'] = np.maximum(diarize_df['end'], word['end']) - np.minimum(diarize_df['start'], word['start'])
+        #             # remove no hit
+        #             if not fill_nearest:
+        #                 dia_tmp = diarize_df[diarize_df['intersection'] > 0]
+        #             else:
+        #                 dia_tmp = diarize_df
+        #             if len(dia_tmp) > 0:
+        #                 # sum over speakers
+        #                 speaker = dia_tmp.groupby("speaker")["intersection"].sum().sort_values(ascending=False).index[0]
+        #                 word["speaker"] = speaker
+        #                 word["speaker_id"] = speakers[speaker]
         
     return transcript_result            
 

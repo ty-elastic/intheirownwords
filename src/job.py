@@ -5,6 +5,7 @@ import queue
 import uuid
 from datetime import datetime, date
 import shutil
+import traceback
 
 INGEST_DIR="ingest"
 
@@ -49,7 +50,7 @@ def process_loop():
             shutil.rmtree( project['input'], ignore_errors=True)
         except Exception as inst:
             job['status'] = 'error'
-            print(inst)
+            traceback.print_exc()
         q.task_done()
         
 def start():
