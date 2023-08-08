@@ -66,7 +66,7 @@ def get_origins():
     with Elasticsearch([url], verify_certs=True) as es:
         aggs = {
             "origins" : {
-                "terms" : { "field" : "origin",  "size" : 100 }
+                "terms" : { "field" : "origin",  "size" : 100, "order": { "_key" : "asc" } }
             }
         }
 
