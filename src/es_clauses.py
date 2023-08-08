@@ -20,8 +20,6 @@ CLAUSE_TEXT_BOOST = 2
 CLAUSE_KEYWORD_BOOST = 0
 CLAUSE_CONFIDENCE_THRESHOLD = 15
 
-USE_RRF = True
-
 def add_clauses(project):
     batch = []
     for clause in project['clauses']:
