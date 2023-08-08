@@ -8,6 +8,7 @@ import math
 
 from sentence_transformers import SentenceTransformer
 import pandas as pd
+from functools import reduce
 
 MAX_P_SIZE=10
 SCENE_OVERLAP = 3
@@ -26,8 +27,8 @@ def find_scene(project, start, end):
             return scene
     return None
 
-def start_clause(chunk, start_segment, project):
-    clause = {'speaker.id':chunk['speaker_id'], 'scene.frame_num':None, 'start': start_segment['start'], 'end': start_segment['end']}
+def create_clause(chunk, segment, project):
+    clause = {'speaker.id':chunk['speaker_id'], 'scene.frame_num':None, 'start': segment['start'], 'end': segment['end']}
     scene = chunk['scene']
     if scene != None:
         clause['scene.frame_num']:['frame_num']
@@ -45,28 +46,19 @@ def start_clause(chunk, start_segment, project):
     clause['origin'] = project['origin']
     clause['source_url'] = project['source_url']
 
-    clause['text'] = ''
+    clause['text'] = " ".join(segment['text'])
     return clause
 
 def split_chunk(chunk, clauses, project):
-    # print("---PRE")
-    # print(chunk['segments'])
+    print("---PRE")
+    print(chunk['segments'])
     chunk_segments = chunking_text(chunk['segments'])
-    # print("---POST")
-    # print(chunk_segments)
+    print("---POST")
+    print(chunk_segments)
 
     clause = None
     for chunk_segment in chunk_segments:
-        clause = start_clause(chunk, chunk_segment, project)
-        for text in chunk_segment['text']:
-            if len(clause['text'])+len(text) >= ELSER_TOKEN_LIMIT:
-                print("forcing segmentation")
-                clauses.append(clause)
-                clause = start_clause(chunk, chunk_segment, project)
-                clause['text'] = text
-            else:
-                clause['text'] = clause['text'] + ' ' + text
-                clause['end'] = chunk_segment['end']
+        clause = create_clause(chunk, chunk_segment, project)
         clauses.append(clause)
 
 def split(project, segments):
@@ -88,6 +80,7 @@ def split(project, segments):
         split_chunk(chunk, clauses, project)
 
     project['clauses'] = clauses
+    print(clauses)
     return clauses
 
 def chunking_text(segments):
@@ -104,10 +97,10 @@ def chunking_text(segments):
     for num, segment in df.iterrows():
         if thought == None:
             thought = {"start":segment.start, "text":[]}
-        elif np.isin(num, true_middle_points):
+        elif np.isin(num, true_middle_points) or reduce(lambda x, y: x + len(y), thought['text'], 0)+len(segment.text) >= ELSER_TOKEN_LIMIT:
             segments.append(thought)
             thought = {"start":segment.start, "text":[]}
-        thought['text'].append(segment.text)
+        thought['text'].append(segment.text.strip())
         thought['end'] = segment.end
     if thought is not None:
         segments.append(thought)

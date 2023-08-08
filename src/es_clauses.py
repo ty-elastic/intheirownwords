@@ -8,9 +8,6 @@ import es_helpers
 import dateutil.parser
 import yake
 
-import logging
-logging.getLogger('elastic_transport.transport').setLevel(logging.DEBUG)
-
 METHOD_RRF="RRF"
 METHOD_HYBRID="Hybrid"
 
@@ -127,8 +124,7 @@ def make_hybrid_query(origin, search_text, text_boost, keyword_boost):
                             "text_expansion": {
                                 "text_elser.tokens": {
                                     "model_text": search_text,
-                                    "model_id": ".elser_model_1",
-                                    "boost": text_boost
+                                    "model_id": ".elser_model_1"
                                 }
                             }
                         }
