@@ -35,6 +35,7 @@ def process_loop():
         job = [x for x in jobs if x['id'] == project['id']][0]
         print(project)
         job['status'] = 'processing'
+        started = datetime.now()
 
         try:
             prj.process(project['input'], 
@@ -46,7 +47,7 @@ def process_loop():
                         True,
                         project['enable_scenes'])
             job['status'] = 'complete'
-            job['duration'] = datetime.now() - job['started']
+            job['duration'] = datetime.now() - started
         except Exception as inst:
             job['status'] = 'error'
             traceback.print_exc()
