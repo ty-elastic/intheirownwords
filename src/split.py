@@ -50,11 +50,11 @@ def create_clause(chunk, segment, project):
     return clause
 
 def split_chunk(chunk, clauses, project):
-    print("---PRE")
-    print(chunk['segments'])
+    # print("---PRE")
+    # print(chunk['segments'])
     chunk_segments = chunking_text(chunk['segments'])
-    print("---POST")
-    print(chunk_segments)
+    # print("---POST")
+    # print(chunk_segments)
 
     clause = None
     for chunk_segment in chunk_segments:
@@ -80,7 +80,7 @@ def split(project, segments):
         split_chunk(chunk, clauses, project)
 
     project['clauses'] = clauses
-    print(clauses)
+    # print(clauses)
     return clauses
 
 def chunking_text(segments):
