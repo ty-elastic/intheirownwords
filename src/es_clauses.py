@@ -34,6 +34,32 @@ def extract_keywords(search_text):
         return keywords[0][0]
     return None
 
+def get_projects(origin):
+    url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
+    with Elasticsearch([url], verify_certs=True) as es:
+        aggs = {
+            "projects" : {
+                "terms" : { "field" : "source_url",  "size" : 100 }
+            }
+        }
+        query = { "term": { "origin": origin } }
+
+        fields = ["kind", "origin", "date", "title", "media_url", "source_url"]
+        resp = es.search(index=CLAUSES_INDEX,
+                            aggs=aggs,
+                            query=query,
+                            fields=fields,
+                            size=100,
+                            source=False)
+        if len(resp['aggregations']['projects']) > 0:
+            projects = []
+            for bucket in resp['aggregations']['projects']['buckets']:
+                projects.append(bucket)
+            print(projects)
+            return projects
+        else:
+            return None
+
 def get_media_kinds():
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
     with Elasticsearch([url], verify_certs=True) as es:

@@ -81,7 +81,10 @@ curl -XPUT "$ELASTICSEARCH_URL/clauses" -H "kbn-xsrf: reporting" -H "Content-Typ
     "origin": {
       "type": "keyword"
     },
-    
+    "source_url": {
+        "type": "keyword"
+    },
+
     "scene.start": {
       "type": "float"
     },
