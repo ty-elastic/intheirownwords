@@ -7,12 +7,9 @@ import es_voices
 import es_helpers
 import dateutil.parser
 import yake
-#import nltk
 
 import logging
 logging.getLogger('elastic_transport.transport').setLevel(logging.DEBUG)
-
-#nltk.download('punkt')
 
 METHOD_RRF="RRF"
 METHOD_HYBRID="Hybrid"

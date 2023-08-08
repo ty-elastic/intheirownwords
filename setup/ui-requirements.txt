@@ -1,7 +1,6 @@
 elasticsearch
 yake
 nltk
-
 pytube
 
 streamlit

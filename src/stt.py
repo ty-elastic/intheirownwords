@@ -3,7 +3,7 @@ import gc
 import os
 import torch
 
-import diarize
+import stt_diarize
 import es_voices
 
 DEVICE = "cuda" 
@@ -36,7 +36,7 @@ def speech_to_text(project):
     del model_a
 
     # 3. Assign speaker labels
-    diarize_model = diarize.DiarizationPipeline(use_auth_token=os.getenv('HF_TOKEN'), device=DEVICE)
+    diarize_model = stt_diarize.DiarizationPipeline(use_auth_token=os.getenv('HF_TOKEN'), device=DEVICE)
 
     # add min/max number of speakers if known
     diarize_segments, embeddings = diarize_model(project['conformed_audio'])
@@ -54,7 +54,7 @@ def speech_to_text(project):
         speakers[f"SPEAKER_{i:02}"] = speaker_id
     # print(speakers)
 
-    result = diarize.assign_word_speakers(diarize_segments, result, speakers)
+    result = stt_diarize.assign_word_speakers(diarize_segments, result, speakers)
     # print(diarize_segments)
     # print(result["segments"]) # segments are now assigned speaker IDs
 
