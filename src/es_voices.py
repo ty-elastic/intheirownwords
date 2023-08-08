@@ -17,12 +17,12 @@ def get_unassigned_voices(origin):
                     "exists": {
                         "field": "speaker.name"
                     }
-                },
-                "filter": {
-                    "term": {"origin": origin}
                 }
             }
         }
+
+        if origin is not None:
+            query["bool"]["filter"] = {"term": {"origin": origin}}
 
         fields = ["_id", "example.end", "example.start",
                   "example.url", "example.source_url"]

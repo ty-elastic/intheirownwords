@@ -112,7 +112,6 @@ if st.session_state["authentication_status"]:
                             escaped = escape_markdown(context_answer)
                             text = "### :orange[_\"" + escaped + "\"_]" + "\r\n"
                             st.markdown(text)
-                            st.write("---")
 
                     if results['text'] != context_answer:
                         escaped = escape_markdown(results['text'])
