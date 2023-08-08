@@ -91,7 +91,7 @@ if st.session_state["authentication_status"]:
             results = es_clauses.find_clauses(origin, query, method)
 
             if results != None:
-                text = "### " + "[" + results['title'] + "](" + results["source_url"] + ")"
+                text = "#### " + "[" + results['title'] + "](" + results["source_url"] + ")"
                 st.markdown(text)
                 text = results['date'].strftime('%Y-%m-%d')
                 st.markdown(text)
