@@ -80,7 +80,7 @@ if st.session_state["authentication_status"]:
     with st.form("clauses_query", clear_on_submit=False):
         origins = es_clauses.get_origins()
         origin = st.selectbox('Source', origins)
-        query = st.text_input("Query")
+        query = st.text_input("What do you want to know?")
         #method = st.selectbox('Search Method', SEARCH_METHODS)
         method=es_clauses.METHOD_HYBRID
         question_button = st.form_submit_button("Search")
