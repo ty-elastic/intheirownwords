@@ -81,7 +81,8 @@ if st.session_state["authentication_status"]:
         origins = es_clauses.get_origins()
         origin = st.selectbox('Source', origins)
         query = st.text_input("Query")
-        method = st.selectbox('Search Method', SEARCH_METHODS)
+        #method = st.selectbox('Search Method', SEARCH_METHODS)
+        method=es_clauses.METHOD_HYBRID
         question_button = st.form_submit_button("Search")
 
         if question_button:
@@ -90,7 +91,7 @@ if st.session_state["authentication_status"]:
             results = es_clauses.find_clauses(origin, query, method)
 
             if results != None:
-                text = "## " + "[" + results['title'] + "](" + results["source_url"] + ")"
+                text = "### " + "[" + results['title'] + "](" + results["source_url"] + ")"
                 st.markdown(text)
                 text = results['date'].strftime('%Y-%m-%d')
                 st.markdown(text)
