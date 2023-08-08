@@ -114,7 +114,7 @@ if st.session_state["authentication_status"]:
                         st.markdown(text)
                     
                     if 'speaker.name' in results:
-                        title = "-- **" + results['speaker.name'] + "**, " + results['speaker.title'] + ", " + results['speaker.company']
+                        title = "**" + results['speaker.name'] + "**, " + results['speaker.title'] + ", " + results['speaker.company']
                         if 'speaker.email' in results:
                             text = "[" + title + "](mailto:" + results['speaker.email'] + ")"
                         else:
