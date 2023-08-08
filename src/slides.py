@@ -53,7 +53,7 @@ def detect_slides(project):
         filepath = frames_path + "/" + scene['frame_file']
         frame_url = s3.upload_file(project, 'frames', filepath)
 
-        scene_record = {'frame_path': filepath, 'frame_num': scene['frame_num'], 'frame_url': frame_url, 'frame_text': scene['frame_text']}
+        scene_record = {'id': i, 'frame_path': filepath, 'frame_num': scene['frame_num'], 'frame_url': frame_url, 'frame_text': scene['frame_text']}
         scene_record['start'] = scene['start']
         scene_record['end'] = scene['end']
         #print(scene_record)

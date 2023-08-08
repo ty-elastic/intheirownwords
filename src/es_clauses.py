@@ -28,7 +28,6 @@ USE_RRF = True
 def add_clauses(project):
     batch = []
     for clause in project['clauses']:
-        #print(clause)
         batch.append(clause)
         if len(batch) >= 100:
             bulkLoadIndexPipeline(batch,CLAUSES_INDEX,CLAUSES_PIPELINE)
@@ -43,6 +42,30 @@ def extract_keywords(search_text):
         return keywords[0][0]
     return None
 
+def get_media_kinds():
+    url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
+    with Elasticsearch([url], verify_certs=True) as es:
+        aggs = {
+            "media_kinds" : {
+                "terms" : { "field" : "media_kind",  "size" : 100 }
+            }
+        }
+
+        fields = ["media_kind"]
+        resp = es.search(index=CLAUSES_INDEX,
+                            aggs=aggs,
+                            fields=fields,
+                            size=1,
+                            source=False)
+        if len(resp['aggregations']['media_kinds']) > 0:
+            media_kinds = []
+            for bucket in resp['aggregations']['media_kinds']['buckets']:
+                media_kinds.append(bucket['key'])
+            #print(origins)
+            return media_kinds
+        else:
+            return None
+        
 def get_origins():
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
     with Elasticsearch([url], verify_certs=True) as es:
@@ -201,7 +224,7 @@ def find_clauses(origin, search_text, method):
 
         
 
-        fields = ["kind", "origin", "date", "title", "start", "end", "text", "media_url", "scene.frame_url", "speaker.id", "scene.frame_text"]
+        fields = ["kind", "origin", "date", "title", "start", "end", "text", "media_url", "source_url", "scene.frame_url", "speaker.id", "scene.frame_text"]
 
         if method == METHOD_RRF:
             query, rank = make_rrf_query(origin, search_text)

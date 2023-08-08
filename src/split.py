@@ -1,6 +1,6 @@
 import chunk_text
 
-SCENE_OVERLAP = 4
+SCENE_OVERLAP = 3
 ELSER_TOKEN_LIMIT = 512
 
 def find_scene(project, start, end):
@@ -12,8 +12,9 @@ def find_scene(project, start, end):
             return scene
     return None
 
-def init_clause(segment, scene, project):
-    clause = {'speaker.id':segment['speaker_id'], 'scene.frame_num':None, 'start': segment['start']}
+def start_clause(chunk, start_segment, project):
+    clause = {'speaker.id':chunk['speaker_id'], 'scene.frame_num':None, 'start': start_segment['start'], 'end': start_segment['end']}
+    scene = chunk['scene']
     if scene != None:
         clause['scene.frame_num']:['frame_num']
         clause['scene.start'] = scene['start']
@@ -28,44 +29,49 @@ def init_clause(segment, scene, project):
     clause['date'] = project['date'].strftime('%Y-%m-%d')
     clause['kind'] = project['kind']
     clause['origin'] = project['origin']
+    clause['source_url'] = project['source_url']
+
+    clause['text'] = ''
     return clause
 
-def chunk(clause, clause_text_blocks, clauses, segment, scene, project):
-    thoughts = chunk_text.chunking_text(clause_text_blocks)
-    # clause_text_blocks = []
-    for thought in thoughts:
-        clause['text'] = ''
-        for text in thought:
+def split_chunk(chunk, clauses, project):
+    # print("---PRE")
+    # print(chunk['segments'])
+    chunk_segments = chunk_text.chunking_text(chunk['segments'])
+    # print("---POST")
+    # print(chunk_segments)
+
+    clause = None
+    for chunk_segment in chunk_segments:
+        clause = start_clause(chunk, chunk_segment, project)
+        for text in chunk_segment['text']:
             if len(clause['text'])+len(text) >= ELSER_TOKEN_LIMIT:
                 print("forcing segmentation")
                 clauses.append(clause)
-                clause = init_clause(segment, scene, project)
+                clause = start_clause(chunk, chunk_segment, project)
                 clause['text'] = text
             else:
                 clause['text'] = clause['text'] + ' ' + text
+                clause['end'] = chunk_segment['end']
         clauses.append(clause)
-        clause = init_clause(segment, scene, project)
-    return clause, []
 
 def split(project, segments):
     clauses = []
-    clause = None
-    clause_text_blocks = []
+    chunk = None
 
     print(f"segments={len(segments)}")
     for i, segment in enumerate(segments):
-        if 'speaker_id' not in segment:
-            segment['speaker_id'] = None
+        #print(segment)
         scene = find_scene(project, segment['start'], segment['end'])
-        if clause is None:
-            clause = init_clause(segment, scene, project)
-        if (scene != None and scene['frame_num'] != clause['scene.frame_num']) or (segment['speaker_id'] != clause['speaker.id']):
+        if chunk is None:
+            chunk = {'speaker_id':segment['speaker_id'], 'segments':[], 'scene':scene}
+        elif (scene is not chunk['scene']) or (segment['speaker_id'] != chunk['speaker_id']):
             print("split by thought or speaker change")
-            clause, clause_text_blocks = chunk(clause, clause_text_blocks, clauses, segment, scene, project)
-        clause_text_blocks.append(segment['text'].strip())
-        clause['end'] = segment['end']
-    if len(clause_text_blocks) > 0:
-        clause, clause_text_blocks = chunk(clause, clause_text_blocks, clauses, segment, scene, project)
+            split_chunk(chunk, clauses, project)
+            chunk = {'speaker_id':segment['speaker_id'], 'segments':[], 'scene':scene}
+        chunk['segments'].append(segment)
+    if chunk != None:
+        split_chunk(chunk, clauses, project)
 
     project['clauses'] = clauses
     return clauses

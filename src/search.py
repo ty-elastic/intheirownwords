@@ -79,7 +79,7 @@ if st.session_state["authentication_status"]:
     with st.form("clauses_query", clear_on_submit=False):
         origins = es_clauses.get_origins()
         origin = st.selectbox('Source', origins)
-        query = st.text_input("Query: ")
+        query = st.text_input("Query")
         method = st.selectbox('Search Method', SEARCH_METHODS)
         question_button = st.form_submit_button("Search")
 
@@ -93,17 +93,6 @@ if st.session_state["authentication_status"]:
                 col1, col2, = st.columns(2)
 
                 with col1:
-                    placeholder = st.empty()
-                    with placeholder:
-                        with st.spinner('loading...'):
-                            time.sleep(0.1)
-                        placeholder.video(results['media_url'], format="video/mp4", start_time=int(results['start']))
-
-                    st.write("---")
-                    if 'scene.frame_url' in results:
-                        st.image(results['scene.frame_url'])
-
-                with col2:
                     if 'speaker.name' in results:
                         title = "**" + results['speaker.name'] + "**, " + results['speaker.title'] + ", " + results['speaker.company']
                         if 'speaker.email' in results:
@@ -111,10 +100,12 @@ if st.session_state["authentication_status"]:
                         else:
                             text = "" + title
                         st.markdown(text)
-                    text = results['date'].strftime('%Y-%m-%d')
+                    text = "[" + results['date'].strftime('%Y-%m-%d') + "](" + results["source_url"] + ")"
                     st.markdown(text)
 
+
                     answer = es_ml.ask_question(results['text'], query)
+                    context_answer = None
                     if answer is not None:
                         context_answer = es_ml.find_sentence_that_answers_question(results['text'], query, answer)
                         if context_answer is not None:
@@ -123,14 +114,22 @@ if st.session_state["authentication_status"]:
                             st.markdown(text)
                             st.write("---")
 
-                    escaped = escape_markdown(results['text'])
-                    text = "### :green[_\"" + escaped + "\"_]" + "\r\n"
-                    st.markdown(text)
+                    if results['text'] != context_answer:
+                        escaped = escape_markdown(results['text'])
+                        text = "### :green[_\"" + escaped + "\"_]" + "\r\n"
+                        st.markdown(text)
                     
-                    st.write("---")
+                    #st.write("---")
+                    #st.write(f"**{answer}**")
 
-                    st.write(f"**{answer}**")
+                with col2:
+                    placeholder = st.empty()
+                    with placeholder:
+                        with st.spinner('loading...'):
+                            time.sleep(0.1)
+                        placeholder.video(results['media_url'], format="video/mp4", start_time=int(results['start']))
 
-
-                #st.write(results)    
+                    # st.write("---")
+                    # if 'scene.frame_url' in results:
+                    #     st.image(results['scene.frame_url'])
                 

@@ -49,6 +49,7 @@ def assign_word_speakers(diarize_df, transcript_result, speakers, fill_nearest=F
             seg['speaker_id'] = None
         
         # assign speaker to words
+        del seg['words']
         # if 'words' in seg:
         #     for word in seg['words']:
         #         if 'start' in word:
@@ -64,6 +65,8 @@ def assign_word_speakers(diarize_df, transcript_result, speakers, fill_nearest=F
         #                 speaker = dia_tmp.groupby("speaker")["intersection"].sum().sort_values(ascending=False).index[0]
         #                 word["speaker"] = speaker
         #                 word["speaker_id"] = speakers[speaker]
+        #             else:
+        #                 word['speaker_id'] = None
         
     return transcript_result            
 

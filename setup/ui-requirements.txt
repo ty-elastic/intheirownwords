@@ -2,5 +2,7 @@ elasticsearch
 yake
 nltk
 
+pytube
+
 streamlit
 streamlit-authenticator
