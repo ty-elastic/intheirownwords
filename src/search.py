@@ -66,17 +66,17 @@ if os.path.isfile('auth/users.yaml'):
         )
 
         name, authentication_status, username = authenticator.login('Login', 'main')
-        st.session_state["authentication_status"] = authentication_status
         if authentication_status is False:
             st.error('Username/password is incorrect')
         elif authentication_status is None:
             st.warning('Please enter your username and password')
 else:
     st.session_state["authentication_status"] = True
-    st.session_state["username"] = 'elastic'  
+    st.session_state["username"] = 'elastic'
 
 if st.session_state["authentication_status"]:
-
+    with st.sidebar:
+        authenticator.logout('Logout', 'main')
     with st.form("clauses_query", clear_on_submit=False):
         origins = es_clauses.get_origins()
         origin = st.selectbox('Source', origins)
