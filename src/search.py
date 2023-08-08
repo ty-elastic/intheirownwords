@@ -73,6 +73,7 @@ if os.path.isfile('auth/users.yaml'):
             st.warning('Please enter your username and password')
 else:
     st.session_state["authentication_status"] = True
+    st.session_state["username"] = 'elastic'  
 
 if st.session_state["authentication_status"]:
 
@@ -89,21 +90,14 @@ if st.session_state["authentication_status"]:
             results = es_clauses.find_clauses(origin, query, method)
 
             if results != None:
-                print(results['text'])
+                text = "## " + "[" + results['title'] + "](" + results["source_url"] + ")"
+                st.markdown(text)
+                text = results['date'].strftime('%Y-%m-%d')
+                st.markdown(text)
+
                 col1, col2, = st.columns(2)
 
                 with col1:
-                    if 'speaker.name' in results:
-                        title = "**" + results['speaker.name'] + "**, " + results['speaker.title'] + ", " + results['speaker.company']
-                        if 'speaker.email' in results:
-                            text = "[" + title + "](mailto:" + results['speaker.email'] + ")"
-                        else:
-                            text = "" + title
-                        st.markdown(text)
-                    text = "[" + results['date'].strftime('%Y-%m-%d') + "](" + results["source_url"] + ")"
-                    st.markdown(text)
-
-
                     answer = es_ml.ask_question(results['text'], query)
                     context_answer = None
                     if answer is not None:
@@ -115,11 +109,16 @@ if st.session_state["authentication_status"]:
 
                     if results['text'] != context_answer:
                         escaped = escape_markdown(results['text'])
-                        text = "### :green[_\"" + escaped + "\"_]" + "\r\n"
+                        text = "#### :green[_\"" + escaped + "\"_]" + "\r\n"
                         st.markdown(text)
                     
-                    #st.write("---")
-                    #st.write(f"**{answer}**")
+                    if 'speaker.name' in results:
+                        title = "-- **" + results['speaker.name'] + "**, " + results['speaker.title'] + ", " + results['speaker.company']
+                        if 'speaker.email' in results:
+                            text = "[" + title + "](mailto:" + results['speaker.email'] + ")"
+                        else:
+                            text = "" + title
+                        st.markdown(text)
 
                 with col2:
                     placeholder = st.empty()

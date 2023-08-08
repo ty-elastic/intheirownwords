@@ -14,7 +14,7 @@ st.title(APP_NAME)
 
 if 'authentication_status' not in st.session_state:
     st.session_state['authentication_status'] = False
-if st.session_state["authentication_status"] != True:
+if st.session_state["authentication_status"] != True or st.session_state["username"] != 'elastic':
     st.error('not authenticated')
     st.stop()
 
@@ -28,13 +28,12 @@ def update_status(origin):
     }
     jobs = job.get_status()
     for j in jobs:
-        if origin is not ORIGIN_ALL and j["origin"] is not origin:
-            continue
-        data['origin'].append(j['origin'])
-        data['title'].append(j['title'])
-        data['status'].append(j['status'])
-        data['started'].append(j['started'])
-        data['duration'].append(str(j['duration']))
+        if origin is ORIGIN_ALL or j["origin"] == origin:
+            data['origin'].append(j['origin'])
+            data['title'].append(j['title'])
+            data['status'].append(j['status'])
+            data['started'].append(j['started'])
+            data['duration'].append(str(j['duration']))
 
     df = pd.DataFrame(data)
     st.table(df)

@@ -13,9 +13,24 @@ st.title(APP_NAME)
 
 if 'authentication_status' not in st.session_state:
     st.session_state['authentication_status'] = False
-if st.session_state["authentication_status"] != True:
+if st.session_state["authentication_status"] != True or st.session_state["username"] != 'elastic':
     st.error('not authenticated')
     st.stop()
+
+
+def validate_input(source_url, title, kind, origin, youtube_link, uploaded_file):
+    if source_url is None or source_url.strip() is "":
+        return False
+    if title is None or title.strip() is "":
+        return False
+    if kind is None or kind.strip() is "":
+        return False
+    if origin is None or origin.strip() is "":
+        return False
+    if (youtube_link is None or youtube_link.strip() is "") and (uploaded_file is None):
+        return False
+    return True
+
 
 with st.form("upload", clear_on_submit=True):
     source_url = st.text_input(
@@ -31,22 +46,28 @@ with st.form("upload", clear_on_submit=True):
     upload_button = st.form_submit_button("Ingest from File")
 
 if youtube_button:
-    print(youtube_link)
-    yt = YouTube(youtube_link)
-    videos = yt.streams.filter(progressive=True, file_extension='mp4').desc()
+    if validate_input(source_url, title, kind, origin, youtube_link, uploaded_file):
+        print(youtube_link)
+        yt = YouTube(youtube_link)
+        videos = yt.streams.filter(progressive=True, file_extension='mp4').desc()
 
-    print(videos)
+        print(videos)
 
-    input = videos.first().download(output_path=job.INGEST_DIR,skip_existing=False,filename=str(uuid.uuid4()) + ".mp4")
-    print(input)
-    job.enqueue(input, source_url, title, date,
-                kind, origin, enable_slides)
+        input = videos.first().download(output_path=job.INGEST_DIR,skip_existing=False,filename=str(uuid.uuid4()) + ".mp4")
+        print(input)
+        job.enqueue(input, source_url, title, date,
+                    kind, origin, enable_slides)
+    else:
+        st.error('incomplete form')
 
 if upload_button:
-    input = os.path.join(job.INGEST_DIR, str(uuid.uuid4()) + ".mp4")
+    if validate_input(source_url, title, kind, origin, youtube_link, uploaded_file):
+        input = os.path.join(job.INGEST_DIR, str(uuid.uuid4()) + ".mp4")
 
-    with open(input, "wb") as f:
-        f.write(uploaded_file.getbuffer())
+        with open(input, "wb") as f:
+            f.write(uploaded_file.getbuffer())
 
-    job.enqueue(input, source_url, title, date,
-                kind, origin, enable_slides)
+        job.enqueue(input, source_url, title, date,
+                    kind, origin, enable_slides)
+    else:
+        st.error('incomplete form')

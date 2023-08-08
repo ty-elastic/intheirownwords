@@ -9,7 +9,7 @@ st.title(APP_NAME)
 
 if 'authentication_status' not in st.session_state:
     st.session_state['authentication_status'] = False
-if st.session_state["authentication_status"] != True:
+if st.session_state["authentication_status"] != True or st.session_state["username"] != 'elastic':
     st.error('not authenticated')
     st.stop()
 
