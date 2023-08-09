@@ -35,7 +35,7 @@ def ask_question(context, question, strip=True):
 def find_sentence_that_answers_question(context, question, answer):
     sentences = tokenizer.tokenize(context)
     candidates = []
-    for sentence in sentences:
+    for i, sentence in enumerate(sentences):
         if sentence.find(answer) != -1:
             print(sentence)
-            return sentence
+            return sentence, i, sentences

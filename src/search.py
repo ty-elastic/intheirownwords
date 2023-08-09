@@ -121,16 +121,26 @@ if st.session_state["authentication_status"]:
                     answer = es_ml.ask_question(results['text'], query)
                     context_answer = None
                     if answer is not None:
-                        context_answer = es_ml.find_sentence_that_answers_question(results['text'], query, answer)
+                        context_answer, i, sentences = es_ml.find_sentence_that_answers_question(results['text'], query, answer)
                         if context_answer is not None:
-                            escaped = escape_markdown(context_answer)
-                            text = "### :orange[_\"" + escaped + "\"_]" + "\r\n"
+                            n = 0
+                            text = "### _\""
+                            for sentence in sentences:
+                                escaped = escape_markdown(sentence)
+                                if n > 0:
+                                    text = text + " "
+                                if i == n:
+                                    text = text + ":orange[_" + escaped + "_]"
+                                else:
+                                    text = text + escaped
+                                n = n + 1
+                            
+                            text = text + "\"_"
                             st.markdown(text)
-
-                    if results['text'] != context_answer:
-                        escaped = escape_markdown(results['text'])
-                        text = "#### :green[_\"" + escaped + "\"_]" + "\r\n"
-                        st.markdown(text)
+                        else:
+                            escaped = escape_markdown(results['text'])
+                            text = ":orange[_\"" + escaped + "\"_]"
+                            st.markdown(text)
                     
                     if 'speaker.name' in results:
                         title = "**" + results['speaker.name'] + "**, " + results['speaker.title'] + ", " + results['speaker.company']
