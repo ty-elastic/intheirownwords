@@ -9,6 +9,7 @@ from yaml.loader import SafeLoader
 import es_voices
 import pandas as pd
 import ui_helpers
+import es_origins
 
 if 'authentication_status' not in st.session_state:
     st.session_state['authentication_status'] = False
@@ -17,8 +18,9 @@ APP_NAME = "Informative Video Search Demo"
 
 st.set_page_config(layout="wide", page_title=APP_NAME)
 
-st.image('https://images.contentstack.io/v3/assets/bltefdd0b53724fa2ce/blt601c406b0b5af740/620577381692951393fdf8d6/elastic-logo-cluster.svg', width=100)
-st.title(APP_NAME)
+#header_container = st.container()
+header_logo = st.empty()
+header_title = st.empty()
 
 METHOD_RRF_SUB="RRF Sub"
 METHOD_RRF="RRF"
@@ -46,17 +48,31 @@ else:
     st.session_state["authentication_status"] = True
     st.session_state["username"] = 'elastic'
 
+def source_change():
+    print(st.session_state["origin"])
+    origin = es_origins.get_origin(st.session_state["origin"])
+    if origin is not None:
+        header_logo.empty()
+        header_title.empty()
+        print(origin['logo_url'])
+        header_logo.image(origin['logo_url'], width=100)
+        header_title.title(origin['origin'] + " Video Search")
+    else:
+        header_logo = st.image('https://images.contentstack.io/v3/assets/bltefdd0b53724fa2ce/blt601c406b0b5af740/620577381692951393fdf8d6/elastic-logo-cluster.svg', width=100)
+        header_title = st.title(APP_NAME)
+
 if st.session_state["authentication_status"]:
     with st.sidebar:
         authenticator.logout('Logout', 'main')
 
     origins = es_clauses.get_origins()
-    origin = st.selectbox('Source', origins)
+    st.session_state["origin"] = st.selectbox('Source', origins, on_change=source_change)
+    source_change()
 
     with st.form("clauses_query", clear_on_submit=False):
         query = st.text_input(":mag_right: **What do you want to know?**")
 
-        speakers = es_voices.get_speakers(origin)
+        speakers = es_voices.get_speakers(st.session_state["origin"])
         speakers.insert(0, {'_id': 'anyone', 'speaker.name': 'anyone'})
         df = pd.DataFrame(speakers)
         #print(speakers)
@@ -77,7 +93,7 @@ if st.session_state["authentication_status"]:
             st.cache_data.clear()
             if speaker == 'anyone':
                 speaker = None
-            results = es_clauses.find_clauses(origin, query, method, speaker_id=speaker)
+            results = es_clauses.find_clauses(st.session_state["origin"], query, method, speaker_id=speaker)
 
             if results != None:
                 text = "#### " + "[" + results['title'] + "](" + results["source_url"] + ")"

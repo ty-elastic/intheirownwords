@@ -19,15 +19,15 @@ if st.session_state["authentication_status"] != True or st.session_state["userna
 
 
 def validate_input(source_url, title, kind, origin, youtube_link, uploaded_file):
-    if source_url is None or source_url.strip() is "":
+    if source_url is None or source_url.strip() == "":
         return False
-    if title is None or title.strip() is "":
+    if title is None or title.strip() == "":
         return False
-    if kind is None or kind.strip() is "":
+    if kind is None or kind.strip() == "":
         return False
-    if origin is None or origin.strip() is "":
+    if origin is None or origin.strip() == "":
         return False
-    if (youtube_link is None or youtube_link.strip() is "") and (uploaded_file is None):
+    if (youtube_link is None or youtube_link.strip() == "") and (uploaded_file is None):
         return False
     return True
 
