@@ -27,6 +27,19 @@ METHOD_HYBRID="Hybrid"
 
 SEARCH_METHODS = [es_clauses.METHOD_HYBRID, es_clauses.METHOD_RRF]
 
+def highlight_sentence(sentences, i):
+    text = "### _\""
+    for n, sentence in enumerate(sentences):
+        escaped = escape_markdown(sentence)
+        if n > 0:
+            text = text + " "
+        if i == n:
+            text = text + ":orange[_" + escaped + "_]"
+        else:
+            text = text + escaped
+    text = text + "\"_"
+    return text
+
 def escape_markdown(text: str, version: int = 1, entity_type: str = None) -> str:
     """
     Helper function to escape telegram markup symbols.
@@ -123,19 +136,7 @@ if st.session_state["authentication_status"]:
                     if answer is not None:
                         context_answer, i, sentences = es_ml.find_sentence_that_answers_question(results['text'], query, answer)
                         if context_answer is not None:
-                            n = 0
-                            text = "### _\""
-                            for sentence in sentences:
-                                escaped = escape_markdown(sentence)
-                                if n > 0:
-                                    text = text + " "
-                                if i == n:
-                                    text = text + ":orange[_" + escaped + "_]"
-                                else:
-                                    text = text + escaped
-                                n = n + 1
-                            
-                            text = text + "\"_"
+                            text = highlight_sentence(sentences, i)
                             st.markdown(text)
                         else:
                             escaped = escape_markdown(results['text'])
