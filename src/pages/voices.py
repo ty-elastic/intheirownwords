@@ -16,7 +16,7 @@ if st.session_state["authentication_status"] != True or st.session_state["userna
 forms = {}
 
 origins = es_clauses.get_origins()
-origin = st.selectbox('Source', origins)
+origin = st.selectbox('Collection', origins)
 
 voices = es_voices.get_unassigned_voices(origin)
 

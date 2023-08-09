@@ -41,7 +41,7 @@ def update_status(origin):
 with st.form("status_query", clear_on_submit=False):
     origins = es_clauses.get_origins()
     origins.insert(0, ORIGIN_ALL)
-    origin = st.selectbox('Source', origins)
+    origin = st.selectbox('Collection', origins)
     question_button = st.form_submit_button("Search")
 
 if question_button:
