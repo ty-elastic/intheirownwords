@@ -45,11 +45,11 @@ def get_project(project_id):
                             fields=fields,
                             size=1,
                             source=False)
-        print(resp)
+        #print(resp)
         if len(resp['hits']['hits']) > 0:
             body = resp['hits']['hits'][0]['fields']
             project = es_helpers.strip_field_arrays(body)
-            print (project)
+            #print (project)
             return project
         return None
 
@@ -75,7 +75,7 @@ def get_projects(origin):
             for bucket in resp['aggregations']['projects']['buckets']:
                 project = get_project(bucket['key'])
                 projects.append(project)
-            print(projects)
+            #print(projects)
             return projects
         else:
             return None
@@ -168,7 +168,7 @@ def make_hybrid_query(origin, search_text, text_boost, keyword_boost, speaker_id
                         "term" : { "speaker.id" : speaker_id }
                     })
 
-    print(query_text)
+    #print(query_text)
     return query_text
 
 def make_rrf_query(origin, search_text):
@@ -259,7 +259,7 @@ def find_clauses(origin, search_text, method, speaker_id=None):
                                 size=1,
                                 rank=rank,
                                 source=False)
-            print(resp)
+            #print(resp)
             if len(resp['hits']['hits']) > 0:
                 resp['hits']['hits'][0]['_score'] = CLAUSE_CONFIDENCE_THRESHOLD
         elif method == METHOD_HYBRID:
@@ -270,7 +270,7 @@ def find_clauses(origin, search_text, method, speaker_id=None):
                             size=1,
                             source=False)
             
-        print(resp)
+        #print(resp)
         if len(resp['hits']['hits']) > 0:
             if resp['hits']['hits'][0]['_score'] >= CLAUSE_CONFIDENCE_THRESHOLD:
                 body = resp['hits']['hits'][0]['fields']
@@ -280,7 +280,7 @@ def find_clauses(origin, search_text, method, speaker_id=None):
             
                 voice = es_voices.lookup_speaker_by_id(body['speaker.id'][0])
                 clause.update(voice)
-                print (clause)
+                #print (clause)
 
                 return clause
         return None

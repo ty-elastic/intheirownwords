@@ -12,5 +12,3 @@ def upload_file(project, remote_folder, local_path):
         response = s3_client.upload_file(local_path, os.getenv('AWS_S3_BUCKET'), remote_path)
         #print(response)
         return "https://" + os.getenv('AWS_S3_BUCKET') + ".s3.amazonaws.com/" + remote_path
-
-#upload_file({'id':'asldjasldjasldjalskd'}, '/hack/test/img/otel-Scene-001-01.jpg')

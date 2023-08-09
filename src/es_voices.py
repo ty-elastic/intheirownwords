@@ -23,7 +23,7 @@ def get_speakers(origin):
             doc = es_helpers.strip_field_arrays(voice['fields'])
             if 'speaker.name' in doc:
                 speakers.append(doc)
-        print(speakers)
+        #print(speakers)
         return speakers
 
 def get_unassigned_voices(origin):
@@ -96,7 +96,7 @@ def lookup_speaker_by_id(speaker_id):
                          size=1,
                          source=False)
 
-        print(resp)
+        #print(resp)
         if 'fields' in resp['hits']['hits'][0]:
             body = resp['hits']['hits'][0]['fields']
             return es_helpers.strip_field_arrays(body)
