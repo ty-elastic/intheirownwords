@@ -46,4 +46,3 @@ with st.form("status_query", clear_on_submit=False):
 
 if question_button:
     update_status(origin)
-

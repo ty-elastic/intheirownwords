@@ -8,6 +8,8 @@ import job
 import streamlit_authenticator as stauth
 import yaml
 from yaml.loader import SafeLoader
+import es_voices
+import pandas as pd
 
 if 'authentication_status' not in st.session_state:
     st.session_state['authentication_status'] = False
@@ -77,18 +79,35 @@ else:
 if st.session_state["authentication_status"]:
     with st.sidebar:
         authenticator.logout('Logout', 'main')
+
+    origins = es_clauses.get_origins()
+    origin = st.selectbox('Source', origins)
+
     with st.form("clauses_query", clear_on_submit=False):
-        origins = es_clauses.get_origins()
-        origin = st.selectbox('Source', origins)
         query = st.text_input(":mag_right: **What do you want to know?**")
+
+        speakers = es_voices.get_speakers(origin)
+        speakers.insert(0, {'_id': 'anyone', 'speaker.name': 'anyone'})
+        df = pd.DataFrame(speakers)
+        #print(speakers)
+        if len(df) > 0:
+            options = df['_id'].tolist()
+            values = df['speaker.name'].tolist()
+            dic = dict(zip(options, values))
+            speaker = st.selectbox(':microphone: Who said it?', options, format_func=lambda x: dic[x])
+        else:
+            speaker = st.selectbox(':microphone: Who said it?', ['anyone'])
+
         #method = st.selectbox('Search Method', SEARCH_METHODS)
         method=es_clauses.METHOD_HYBRID
         question_button = st.form_submit_button("Search")
 
         if question_button:
-            print(origin)
+            print(speaker)
             st.cache_data.clear()
-            results = es_clauses.find_clauses(origin, query, method)
+            if speaker == 'anyone':
+                speaker = None
+            results = es_clauses.find_clauses(origin, query, method, speaker_id=speaker)
 
             if results != None:
                 text = "#### " + "[" + results['title'] + "](" + results["source_url"] + ")"

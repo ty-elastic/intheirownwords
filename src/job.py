@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime, date
 import shutil
 import traceback
+import os 
 
 INGEST_DIR="ingest"
 
@@ -51,7 +52,8 @@ def process_loop():
         except Exception as inst:
             job['status'] = 'error'
             traceback.print_exc()
-        shutil.rmtree( project['input'], ignore_errors=True)
+        if os.path.exists(project['input']):
+            os.remove(project['input'])
         q.task_done()
         
 def start():

@@ -5,6 +5,26 @@ import es_helpers
 VOICES_INDEX = "voices"
 VOICE_CONFIDENCE_THRESHOLD = 0.85
 
+def get_speakers(origin):
+    url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
+    with Elasticsearch([url], verify_certs=True) as es:
+        query = { "term": { "origin": origin } }
+
+        fields = ["_id", "speaker.name", "speaker.title",
+                  "speaker.company", "speaker.email"]
+        resp = es.search(index=VOICES_INDEX,
+                            query=query,
+                            fields=fields,
+                            size=100,
+                            source=False)
+        #print(resp)
+        speakers = []
+        for voice in resp['hits']['hits']:
+            doc = es_helpers.strip_field_arrays(voice['fields'])
+            if 'speaker.name' in doc:
+                speakers.append(doc)
+        print(speakers)
+        return speakers
 
 def get_unassigned_voices(origin):
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"

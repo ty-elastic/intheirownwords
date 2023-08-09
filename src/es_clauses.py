@@ -129,12 +129,11 @@ def get_origins():
             return None
 
 
-def make_hybrid_query(origin, search_text, text_boost, keyword_boost):
+def make_hybrid_query(origin, search_text, text_boost, keyword_boost, speaker_id=None):
     keywords = extract_keywords(search_text)
     print(keywords)
 
-    if keywords != None:
-        query_text = {
+    query_text = {
                 "bool": { 
                     "must": [
                         {
@@ -147,7 +146,14 @@ def make_hybrid_query(origin, search_text, text_boost, keyword_boost):
                             }
                         }
                     ],
-                    "should": [
+                    "filter": [{
+                        "term" : { "origin" : origin }
+                    }]
+                }
+            }
+    
+    if keywords != None:
+        query_text['bool']['should'] = [
                         {
                             "match": {
                                 "scene.frame_text" : {
@@ -156,31 +162,13 @@ def make_hybrid_query(origin, search_text, text_boost, keyword_boost):
                                 }
                             }
                         }
-                    ],
-                    "filter": {
-                        "term" : { "origin" : origin }
-                    }
-                }
-            }
-    else:
-        query_text = {
-                "bool": { 
-                    "must": [
-                        {
-                            "text_expansion": {
-                                "text_elser.tokens": {
-                                    "model_text": search_text,
-                                    "model_id": ".elser_model_1"
-                                }
-                            }
-                        }
-                    ],
-                    "filter": {
-                        "term" : { "origin" : origin }
-                    }
-                }
-        } 
+                    ]
+    if speaker_id != None:
+        query_text['bool']['filter'].append({
+                        "term" : { "speaker.id" : speaker_id }
+                    })
 
+    print(query_text)
     return query_text
 
 def make_rrf_query(origin, search_text):
@@ -254,7 +242,7 @@ def make_rrf_query(origin, search_text):
 
         return query_text, None
 
-def find_clauses(origin, search_text, method):
+def find_clauses(origin, search_text, method, speaker_id=None):
 
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
     with Elasticsearch([url], verify_certs=True) as es:
@@ -275,7 +263,7 @@ def find_clauses(origin, search_text, method):
             if len(resp['hits']['hits']) > 0:
                 resp['hits']['hits'][0]['_score'] = CLAUSE_CONFIDENCE_THRESHOLD
         elif method == METHOD_HYBRID:
-            query = make_hybrid_query(origin, search_text, CLAUSE_TEXT_BOOST, CLAUSE_KEYWORD_BOOST)
+            query = make_hybrid_query(origin, search_text, CLAUSE_TEXT_BOOST, CLAUSE_KEYWORD_BOOST, speaker_id=speaker_id)
             resp = es.search(index=CLAUSES_INDEX,
                             query=query,
                             fields=fields,
