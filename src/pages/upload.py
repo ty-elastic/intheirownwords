@@ -38,7 +38,7 @@ with st.form("upload", clear_on_submit=True):
     title = st.text_input("Title")
     date = st.date_input("Date Recorded")
     kind = st.text_input("Media Kind", help="e.g., webinar, tutorial")
-    origin = st.text_input("Media Source", help="company name")
+    origin = st.text_input("Collection", help="e.g., company or organization name")
     enable_slides = st.checkbox("Slide Content?", value=True, help="uncheck if content does not contain slides")
     youtube_link = st.text_input("URL to YouTube Video", help='https://www.youtube.com/watch?v=dQw4w9WgXcQ')
     youtube_button = st.form_submit_button("Ingest from YouTube")

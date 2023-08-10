@@ -33,7 +33,7 @@ def list_videos(origin):
 
 with st.form("video_query", clear_on_submit=False):
     origins = es_clauses.get_origins()
-    origin = st.selectbox('Source', origins)
+    origin = st.selectbox('Collection', origins)
     question_button = st.form_submit_button("Search")
 
 if question_button:
