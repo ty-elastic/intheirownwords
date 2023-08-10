@@ -17,7 +17,7 @@ if 'authentication_status' not in st.session_state:
 APP_NAME = "Informative Video Search Demo"
 st.set_page_config(layout="wide", page_title=APP_NAME)
 
-hcol1, hcol2 = st.columns([0.25, 0.75], gap="medium")
+hcol1, hcol2 = st.columns([0.2, 0.8], gap="medium")
 with hcol1:
     header_logo = st.image('https://images.contentstack.io/v3/assets/bltefdd0b53724fa2ce/blt601c406b0b5af740/620577381692951393fdf8d6/elastic-logo-cluster.svg', use_column_width=True)
 with hcol2:
