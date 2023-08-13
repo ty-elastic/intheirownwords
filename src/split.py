@@ -1,20 +1,15 @@
 import numpy as np
-# Library to import pre-trained model for sentence embeddings
-# Calculate similarities between sentences
-from sklearn.metrics.pairwise import cosine_similarity
-# package for finding local minimas
-from scipy.signal import argrelextrema
-import math
-
-from sentence_transformers import SentenceTransformer
+import string
+import es_ml
+from sentence_transformers import SentenceTransformer, util
 import pandas as pd
 from functools import reduce
 
-MAX_P_SIZE=10
+MAX_THOUGHT_INTERRUPT = 2
+SIMILARITY_THRESHOLD = 0.4
+
 SCENE_OVERLAP = 3
 ELSER_TOKEN_LIMIT = 512
-
-# inspired by https://github.com/poloniki/quint
 
 sentence_sim_model = SentenceTransformer('all-MiniLM-L6-v2')
 
@@ -52,7 +47,7 @@ def create_clause(chunk, segment, project):
 def split_chunk(chunk, clauses, project):
     # print("---PRE")
     # print(chunk['segments'])
-    chunk_segments = chunking_text(chunk['segments'])
+    chunk_segments = chunk_text(chunk['segments'])
     # print("---POST")
     # print(chunk_segments)
 
@@ -71,8 +66,8 @@ def split(project, segments):
         scene = find_scene(project, segment['start'], segment['end'])
         if chunk is None:
             chunk = {'speaker_id':segment['speaker_id'], 'segments':[], 'scene':scene}
-        elif (scene is not chunk['scene']) or (segment['speaker_id'] != chunk['speaker_id']):
-            print("split by thought or speaker change")
+        elif (segment['speaker_id'] != chunk['speaker_id']): # or (scene is not chunk['scene']):
+            print("split by speaker change")
             split_chunk(chunk, clauses, project)
             chunk = {'speaker_id':segment['speaker_id'], 'segments':[], 'scene':scene}
         chunk['segments'].append(segment)
@@ -83,22 +78,29 @@ def split(project, segments):
     # print(clauses)
     return clauses
 
-def chunking_text(segments):
+def chunk_text(segments):
     df = pd.DataFrame(segments)
 
     # Split text to sentences and get their embedding
     embeddings = create_embedding(df['text'])
 
     # Get the points where we need to split the text
-    true_middle_points = get_middle_points(embeddings)
+    true_middle_points = get_cut_points(embeddings)
+    #print(true_middle_points)
     # Initiate text to append to
     segments = []
     thought = None
     for num, segment in df.iterrows():
         if thought == None:
             thought = {"start":segment.start, "text":[]}
-        elif np.isin(num, true_middle_points) or reduce(lambda x, y: x + len(y), thought['text'], 0)+len(segment.text) >= ELSER_TOKEN_LIMIT:
+        elif np.isin(num, true_middle_points):
+            print("split by thought")
             segments.append(thought)
+            thought = {"start":segment.start, "text":[]}
+        elif reduce(lambda x, y: x + count_words(y), thought['text'], 0)+count_words(segment.text) >= ELSER_TOKEN_LIMIT:
+            print("split by length")
+            if len(thought['text']) > 0:
+                segments.append(thought)
             thought = {"start":segment.start, "text":[]}
         thought['text'].append(segment.text.strip())
         thought['end'] = segment.end
@@ -107,51 +109,59 @@ def chunking_text(segments):
     #print(segments)
     return segments
 
-def rev_sigmoid(x:float)->float:
-    return (1 / (1 + math.exp(0.5*x)))
-
-def activate_similarities(similarities:np.array, p_size)->np.array:
-        """ Function returns list of weighted sums of activated sentence similarities
-        Args:
-            similarities (numpy array): it should square matrix where each sentence corresponds to another with cosine similarity
-            p_size (int): number of sentences are used to calculate weighted sum
-        Returns:
-            list: list of weighted sums
-        """
-        # To create weights for sigmoid function we first have to create space. P_size will determine number of sentences used and the size of weights vector.
-        x = np.linspace(-10,10,p_size)
-        # Then we need to apply activation function to the created space
-        y = np.vectorize(rev_sigmoid)
-        # Because we only apply activation to p_size number of sentences we have to add zeros to neglect the effect of every additional sentence and to match the length ofvector we will multiply
-        activation_weights = np.pad(y(x),(0,similarities.shape[0]-p_size))
-        ### 1. Take each diagonal to the right of the main diagonal
-        diagonals = [similarities.diagonal(each) for each in range(0,similarities.shape[0])]
-        ### 2. Pad each diagonal by zeros at the end. Because each diagonal is different length we should pad it with zeros at the end
-        diagonals = [np.pad(each, (0,similarities.shape[0]-len(each))) for each in diagonals]
-        ### 3. Stack those diagonals into new matrix
-        diagonals = np.stack(diagonals)
-        ### 4. Apply activation weights to each row. Multiply similarities with our activation.
-        diagonals = diagonals * activation_weights.reshape(-1,1)
-        ### 5. Calculate the weighted sum of activated similarities
-        activated_similarities = np.sum(diagonals, axis=0)
-        return activated_similarities
-
-def get_middle_points(embeddings:np.array) -> list:
-    # Create similarities matrix
-    similarities = cosine_similarity(embeddings)
-
-    p_size = MAX_P_SIZE
-    if p_size > similarities.shape[0]:
-        p_size = similarities.shape[0]
-
-    # Let's apply our function. For long sentences i reccomend to use 10 or more sentences
-    activated_similarities = activate_similarities(similarities, p_size=p_size)
-
-    ### 6. Find relative minima of our vector. For all local minimas and save them to variable with argrelextrema function
-    minmimas = argrelextrema(activated_similarities, np.less, order=2) #order parameter controls how frequent should be splits. I would not reccomend changing this parameter.
-    return minmimas
-
 def create_embedding(sentences):
     # Encode the sentences using the model
     embeddings = sentence_sim_model.encode(sentences)
     return embeddings
+
+def count_words(sentence):
+    return sum([i.strip(string.punctuation).isalpha() for i in sentence.split()])
+
+def get_next_cut(remaining_sims):
+    dissim_start = []
+    for i, sim in enumerate(remaining_sims):
+        if sim < SIMILARITY_THRESHOLD: 
+            if len(dissim_start) >= MAX_THOUGHT_INTERRUPT:
+                return dissim_start[0]+1
+            # allow up to MAX_THOUGHT_INTERRUPT non-related sentences in between 2 related sentences
+            else:
+                dissim_start.append(i)
+        else:
+            dissim_start = []
+    if len(dissim_start) > 0:
+        return dissim_start[0]+1
+
+def get_remaining_sims(embeddings, start): 
+    similarities = []
+    for i in range(start+1, len(embeddings)):
+        similarities.append(util.cos_sim(embeddings[start], embeddings[i]))
+    return similarities
+
+def get_cut_points(embeddings:np.array) -> list:
+    cut_points = []
+    i = 0
+    while True:
+        if i >= len(embeddings)-1:
+            break
+
+        remaining_sims = get_remaining_sims(embeddings, i)
+        cut_point = get_next_cut(remaining_sims)
+        if cut_point is None:
+            break
+        i = cut_point + i
+        cut_points.append(i)
+    #print(cut_points)
+    return cut_points
+
+# test = "Hi I'm a banana. The federal government has released enough food and water to support to 5,000 people for five days as part of the ongoing response to the devastating Hawaii wildfires, a White House spokesperson said Friday. The Federal Emergency Management Agency is continuing to work on providing more shelter supplies, such as water, food and blankets, for people impacted in the state, the spokesperson added. The Coast Guard, Navy National Guard and Army are all working to support response and rescue efforts.  The United States Department of Agriculture has also established a Type 3 Incident Management Team and is supporting requests from the state for wildfire liaisons. President Joe Biden issued a federal disaster declaration on Thursday, promising to send whatever is needed to help the recovery. Assistance from the declaration can include grants for temporary housing and home repairs, low-cost loans to cover uninsured property losses and other programs to help with recovery. Now let's talk about computers. I like to eat toothpaste. Toothpaste is great for teeth. PCs are amazing machines."
+# ss = es_ml.split_sentences(test)
+# segments = []
+# for i, s in enumerate(ss):
+#     segment = {"start": i, "end":i, "text":s}
+#     segments.append(segment)
+# chunk_segments = chunk_text(segments)
+
+# print("---POST")
+# for seg in chunk_segments:
+#     print(seg)
+#     print(" --")

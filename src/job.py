@@ -13,7 +13,7 @@ INGEST_DIR="ingest"
 q = queue.Queue()
 jobs = []
 
-def enqueue(input, source_url, title, date, kind, origin, enable_scenes):
+def enqueue(input, source_url, title, date, kind, origin, save_frames):
     project = {
         "id": uuid.uuid4(),
         "input": input,
@@ -22,7 +22,7 @@ def enqueue(input, source_url, title, date, kind, origin, enable_scenes):
         "kind": kind,
         "origin": origin,
         "source_url": source_url,
-        "enable_scenes": enable_scenes,
+        "save_frames": save_frames,
         'status': 'queued',
         'started': datetime.now(),
         'duration': 0
@@ -46,7 +46,7 @@ def process_loop():
                         project['kind'], 
                         project['origin'],
                         True,
-                        project['enable_scenes'])
+                        project['save_frames'])
             job['status'] = 'complete'
             job['duration'] = datetime.now() - started
         except Exception as inst:

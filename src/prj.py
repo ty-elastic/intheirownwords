@@ -34,7 +34,7 @@ def conform_audio(project):
     except ffmpeg.Error as e:
         raise RuntimeError(f"Failed to load audio: {e.stderr.decode()}") from e
 
-def create_project(input, source_url, title, date, kind, origin, enable_write, enable_slides):
+def create_project(input, source_url, title, date, kind, origin, save_frames):
 
     project_id = str(uuid.uuid4())
     prj_path = os.path.join(PROJECT_DIR, project_id)
@@ -54,8 +54,7 @@ def create_project(input, source_url, title, date, kind, origin, enable_write, e
         "kind": kind,
         "origin": origin,
         "source_url": source_url,
-        "enable_write": enable_write,
-        "enable_slides": enable_slides,
+        "save_frames": save_frames,
         "scenes": []
     }
     print(project)
@@ -64,16 +63,15 @@ def create_project(input, source_url, title, date, kind, origin, enable_write, e
     return project
 
 
-def process(input, source_url, title, date, kind, origin, enable_write, enable_scenes):
+def process(input, source_url, title, date, kind, origin, save_frames):
     start_time = time.time()
 
-    project = prj.create_project(input, source_url, title, date, kind, origin, enable_write, enable_scenes)
+    project = prj.create_project(input, source_url, title, date, kind, origin, save_frames)
     print ("conform_audio")
     prj.conform_audio(project)
 
-    if project['enable_slides']:
-        print ("detect_slides")
-        slides.detect_slides(project)
+    print ("detect_slides")
+    slides.detect_slides(project)
 
     print ("speech_to_text")
     segments = stt.speech_to_text(project)
@@ -81,9 +79,8 @@ def process(input, source_url, title, date, kind, origin, enable_write, enable_s
     print ("split")
     split.split(project, segments)
 
-    if project['enable_write']:
-        print ("add_clauses")
-        es_clauses.add_clauses(project)
+    print ("add_clauses")
+    es_clauses.add_clauses(project)
 
     end_time = time.time()
     print (end_time - start_time)

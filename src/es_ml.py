@@ -33,9 +33,12 @@ def ask_question(context, question, strip=True):
                 return res['inference_results'][0]
 
 def find_sentence_that_answers_question(context, question, answer):
-    sentences = tokenizer.tokenize(context)
+    sentences = split_sentences(context)
     candidates = []
     for i, sentence in enumerate(sentences):
         if sentence.find(answer) != -1:
             print(sentence)
             return sentence, i, sentences
+
+def split_sentences(body):
+    return tokenizer.tokenize(body)

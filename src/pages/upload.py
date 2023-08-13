@@ -39,7 +39,7 @@ with st.form("upload", clear_on_submit=True):
     date = st.date_input("Date Recorded")
     kind = st.text_input("Media Kind", help="e.g., webinar, tutorial")
     origin = st.text_input("Collection", help="e.g., company or organization name")
-    enable_slides = st.checkbox("Slide Content?", value=True, help="uncheck if content does not contain slides")
+    save_frames = st.checkbox("Save Slide Content?", value=False, help="check to save frames with possible slide content as images")
     youtube_link = st.text_input("URL to YouTube Video", help='https://www.youtube.com/watch?v=dQw4w9WgXcQ')
     youtube_button = st.form_submit_button("Ingest from YouTube")
     uploaded_file = st.file_uploader("Media File", type="mp4", help="use ffmpeg to coerce media into h264+aac/mp4")
@@ -56,7 +56,7 @@ if youtube_button:
         input = videos.first().download(output_path=job.INGEST_DIR,skip_existing=False,filename=str(uuid.uuid4()) + ".mp4")
         print(input)
         job.enqueue(input, source_url, title, date,
-                    kind, origin, enable_slides)
+                    kind, origin, save_frames)
     else:
         st.error('incomplete form')
 

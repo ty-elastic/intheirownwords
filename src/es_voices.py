@@ -130,7 +130,6 @@ def lookup_speaker(query_embedding):
 
 def add_speaker(project, query_embedding, example_url, example_start, example_end):
 
-    if project['enable_write']:
         url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
         with Elasticsearch([url], verify_certs=True) as es:
 

@@ -6,7 +6,7 @@ from typing import Optional
 from typing import List, Tuple, Dict
 from scenedetect.frame_timecode import FrameTimecode
 from scenedetect.scene_manager import SceneManager
-from scenedetect.platform import (tqdm, get_and_create_path, get_cv2_imwrite_params)
+from scenedetect.platform import (get_and_create_path, get_cv2_imwrite_params)
 from slide_change_detector import SlideChangeDetector
 
 import csv
@@ -23,6 +23,9 @@ FRAME_SKIP=149
 TESSERACT_OCR_THRESHOLD = 90
 OCR_DUP_THRESHOLD = 0.75
 
+IMAGE_FORMAT = "jpg"
+IMAGE_COMPRESSION = 90
+
 def detect(
     video_path: str,
 ) -> List[Tuple[FrameTimecode, FrameTimecode]]:
@@ -32,7 +35,7 @@ def detect(
     scene_manager.add_detector(SlideChangeDetector(threshold=SCENE_THRESHOLD))
     scene_manager.detect_scenes(
         video=video,
-        show_progress=True,
+        show_progress=False,
         frame_skip=FRAME_SKIP
     )
     return scene_manager.get_scene_list(start_in_scene=False)
@@ -40,20 +43,24 @@ def detect(
 
 def detect_slides(project):
 
-    frames_path = os.path.join(project['path'], "frames")
-    os.makedirs(frames_path)
-    project['frames_path'] = frames_path
-
     scene_list = detect(project['input'])
     video = open_video(project['input'])
-    deduped_scene_list = save_images(scene_list, video, num_images=1, output_dir=frames_path)
+
+    frames_path = None
+    if project['save_frames']:
+        frames_path = os.path.join(project['path'], "frames")
+        os.makedirs(frames_path)
+
+    deduped_scene_list = dedup_scene_list(scene_list, video, output_dir=frames_path)
 
     for i, scene in enumerate(deduped_scene_list):
 
-        filepath = frames_path + "/" + scene['frame_file']
-        frame_url = s3.upload_file(project, 'frames', filepath)
+        scene_record = {'id': i, 'frame_path': filepath, 'frame_num': scene['frame_num'], 'frame_text': scene['frame_text']}
+        if 'frame_file' in scene:
+            filepath = frames_path + "/" + scene['frame_file']
+            frame_url = s3.upload_file(project, 'frames', filepath)
+            scene_record['frame_url'] = frame_url
 
-        scene_record = {'id': i, 'frame_path': filepath, 'frame_num': scene['frame_num'], 'frame_url': frame_url, 'frame_text': scene['frame_text']}
         scene_record['start'] = scene['start']
         scene_record['end'] = scene['end']
         #print(scene_record)
@@ -64,23 +71,17 @@ def detect_slides(project):
 # TODO(v1.0): Refactor to take a SceneList object; consider moving this and save scene list
 # to a better spot, or just move them to scene_list.py.
 #
-def save_images(scene_list: List[Tuple[FrameTimecode, FrameTimecode]],
+def dedup_scene_list(scene_list: List[Tuple[FrameTimecode, FrameTimecode]],
                 video: VideoStream,
-                num_images: int = 3,
-                image_extension: str = 'jpg',
-                encoder_param: int = 90,
                 output_dir: Optional[str] = None) -> Dict[int, List[str]]:
  
-
-    imwrite_param = [get_cv2_imwrite_params()[image_extension], encoder_param
-                    ] if encoder_param is not None else []
+    imwrite_param = [get_cv2_imwrite_params()[IMAGE_FORMAT], IMAGE_COMPRESSION]
 
     video.reset()
 
-    progress_bar = tqdm(total=len(scene_list) * num_images, unit='images', dynamic_ncols=True)
-
     framerate = scene_list[0][0].framerate
 
+    num_images = 1
     timecode_list = [
         [
             FrameTimecode(int(f), fps=framerate) for f in [
@@ -113,15 +114,16 @@ def save_images(scene_list: List[Tuple[FrameTimecode, FrameTimecode]],
             if frame_im is not None:
                 dup, last_frame_text = frame_to_text(frame_im, last_frame_text)
                 if dup is False and len(last_frame_text) > 0:
-                    file_path = f"{i + 1}-{image_timecode.get_frames()}.{image_extension}"
-                    cv2.imwrite(get_and_create_path(file_path, output_dir), frame_im, imwrite_param)
-                    deduped_scene_list.append({"start":scene_list[i][0].get_seconds(), "end":scene_list[i][1].get_seconds(), "frame_file":file_path, "frame_num": image_timecode.get_frames(), "frame_text": last_frame_text})
+                    scene = {"start":scene_list[i][0].get_seconds(), "end":scene_list[i][1].get_seconds(), "frame_num": image_timecode.get_frames(), "frame_text": last_frame_text}
+                    if output_dir is not None:
+                        file_path = f"{i + 1}-{image_timecode.get_frames()}.{IMAGE_FORMAT}"
+                        cv2.imwrite(get_and_create_path(file_path, output_dir), frame_im, imwrite_param)
+                        scene["frame_file"] = file_path
+                    deduped_scene_list.append(scene)
                 # else:
                 #     print("DROPPED", {"start":scene_list[i][0].get_seconds(), "end":scene_list[i][1].get_seconds(), "frame_num": image_timecode.get_frames(), "frame_text": last_frame_text})
             else:
                 break
-            if progress_bar is not None:
-                progress_bar.update(1)
 
     return deduped_scene_list
 

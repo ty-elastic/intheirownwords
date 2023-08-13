@@ -23,28 +23,28 @@ with hcol1:
 with hcol2:
     header_title = st.title(APP_NAME)
 
-METHOD_RRF_SUB="RRF Sub"
 METHOD_RRF="RRF"
 METHOD_HYBRID="Hybrid"
 
 SEARCH_METHODS = [es_clauses.METHOD_HYBRID, es_clauses.METHOD_RRF]
 
 if os.path.isfile('auth/users.yaml'):
-    with open('auth/users.yaml') as file:
-        config = yaml.load(file, Loader=SafeLoader)
+    if "config" not in st.session_state:
+        with open('auth/users.yaml') as file:
+            config = yaml.load(file, Loader=SafeLoader)
 
-        authenticator = stauth.Authenticate(
-            config['credentials'],
-            config['cookie']['name'],
-            config['cookie']['key'],
-            config['cookie']['expiry_days']
-        )
+            authenticator = stauth.Authenticate(
+                config['credentials'],
+                config['cookie']['name'],
+                config['cookie']['key'],
+                config['cookie']['expiry_days']
+            )
 
-        name, authentication_status, username = authenticator.login('Login', 'main')
-        if authentication_status is False:
-            st.error('Username/password is incorrect')
-        elif authentication_status is None:
-            st.warning('Please enter your username and password')
+            name, authentication_status, username = authenticator.login('Login', 'main')
+            if authentication_status is False:
+                st.error('Username/password is incorrect')
+            elif authentication_status is None:
+                st.warning('Please enter your username and password')
 else:
     st.session_state["authentication_status"] = True
     st.session_state["username"] = 'elastic'
