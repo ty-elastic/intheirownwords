@@ -31,7 +31,8 @@ def create_clause(chunk, segment, project):
         clause['scene.end'] = scene['end']
         if 'frame_text' in scene:
             clause['scene.frame_text'] = scene['frame_text']
-        clause['scene.frame_url'] = scene['frame_url']        
+        if 'frame_url' in scene:
+            clause['scene.frame_url'] = scene['frame_url']        
         clause['scene.frame_num'] = scene['frame_num']  
     clause['project_id'] = project['id']
     clause['media_url'] = project['media_url']
@@ -61,13 +62,17 @@ def split(project, segments):
     chunk = None
 
     print(f"segments={len(segments)}")
-    for i, segment in enumerate(segments):
+    for segment in segments:
         #print(segment)
         scene = find_scene(project, segment['start'], segment['end'])
         if chunk is None:
             chunk = {'speaker_id':segment['speaker_id'], 'segments':[], 'scene':scene}
         elif (segment['speaker_id'] != chunk['speaker_id']): # or (scene is not chunk['scene']):
             print("split by speaker change")
+            split_chunk(chunk, clauses, project)
+            chunk = {'speaker_id':segment['speaker_id'], 'segments':[], 'scene':scene}
+        elif reduce(lambda x, y: x + count_words(y['text']), chunk['segments'], 0)+count_words(segment['text']) >= ELSER_TOKEN_LIMIT:
+            print("split by token limit")
             split_chunk(chunk, clauses, project)
             chunk = {'speaker_id':segment['speaker_id'], 'segments':[], 'scene':scene}
         chunk['segments'].append(segment)
@@ -96,11 +101,6 @@ def chunk_text(segments):
         elif np.isin(num, true_middle_points):
             print("split by thought")
             segments.append(thought)
-            thought = {"start":segment.start, "text":[]}
-        elif reduce(lambda x, y: x + count_words(y), thought['text'], 0)+count_words(segment.text) >= ELSER_TOKEN_LIMIT:
-            print("split by length")
-            if len(thought['text']) > 0:
-                segments.append(thought)
             thought = {"start":segment.start, "text":[]}
         thought['text'].append(segment.text.strip())
         thought['end'] = segment.end

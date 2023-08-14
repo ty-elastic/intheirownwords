@@ -13,7 +13,7 @@ COMPUTE_TYPE = "float16" # change to "int8" if low on GPU mem (may reduce accura
 def speech_to_text(project):
 
     # 1. Transcribe with original whisper (batched)
-    model = whisperx.load_model("large-v2", DEVICE, compute_type=COMPUTE_TYPE, asr_options={"word_timestamps": False})
+    model = whisperx.load_model("large-v2", DEVICE, compute_type=COMPUTE_TYPE, asr_options={"word_timestamps": False}, language='en')
 
     audio = whisperx.load_audio(project['conformed_audio'])
     result = model.transcribe(audio, batch_size=BATCH_SIZE, language='en')

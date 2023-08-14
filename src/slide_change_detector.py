@@ -47,7 +47,7 @@ class SlideChangeDetector(SceneDetector):
         self._threshold: float = threshold
         self._min_scene_len: int = min_scene_len
         self._last_scene_cut: Optional[int] = None
-        self._last_frame: Optional[SlideChangeDetector._FrameData] = None
+        self._last_frame_hash: Optional[int] = None
         self._frame_score: Optional[float] = None
 
     def get_metrics(self):
@@ -60,15 +60,15 @@ class SlideChangeDetector(SceneDetector):
         color_converted = cv2.cvtColor(frame_img, cv2.COLOR_BGR2GRAY)
         p1=Image.fromarray(color_converted)
 
-        if self._last_frame is None:
+        hash = imagehash.phash(p1)
+
+        if self._last_frame_hash is None:
             # Need another frame to compare with for score calculation.
-            self._last_frame = SlideChangeDetector._FrameData(p1)
+            self._last_frame_hash = hash
             return 0.0
 
-        diff = imagehash.phash(p1) - imagehash.phash(self._last_frame.image)
-
-        self._last_frame = SlideChangeDetector._FrameData(p1)
-
+        diff = hash - self._last_frame_hash
+        self._last_frame_hash = hash
         return diff
 
 

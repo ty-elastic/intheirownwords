@@ -1,9 +1,11 @@
-from scenedetect import open_video, open_video, VideoStream
+
 import os 
 import s3
-from typing import Optional
 
+from typing import Optional
 from typing import List, Tuple, Dict
+
+from scenedetect import open_video, open_video, VideoStream
 from scenedetect.frame_timecode import FrameTimecode
 from scenedetect.scene_manager import SceneManager
 from scenedetect.platform import (get_and_create_path, get_cv2_imwrite_params)
@@ -11,11 +13,12 @@ from slide_change_detector import SlideChangeDetector
 
 import csv
 import pytesseract
+from difflib import SequenceMatcher
 
 import cv2
 import numpy as np
 
-from difflib import SequenceMatcher
+import time
 
 SCENE_THRESHOLD=8.0
 FRAME_SKIP=149
@@ -43,7 +46,10 @@ def detect(
 
 def detect_slides(project):
 
+    start_time = time.time()
     scene_list = detect(project['input'])
+    print(f"scene_detect: {time.time() - start_time}")
+
     video = open_video(project['input'])
 
     frames_path = None
@@ -51,11 +57,12 @@ def detect_slides(project):
         frames_path = os.path.join(project['path'], "frames")
         os.makedirs(frames_path)
 
+    start_time = time.time()
     deduped_scene_list = dedup_scene_list(scene_list, video, output_dir=frames_path)
-
+    print(f"dedup/OCR: {time.time() - start_time}")
+          
     for i, scene in enumerate(deduped_scene_list):
-
-        scene_record = {'id': i, 'frame_path': filepath, 'frame_num': scene['frame_num'], 'frame_text': scene['frame_text']}
+        scene_record = {'id': i, 'frame_num': scene['frame_num'], 'frame_text': scene['frame_text']}
         if 'frame_file' in scene:
             filepath = frames_path + "/" + scene['frame_file']
             frame_url = s3.upload_file(project, 'frames', filepath)
@@ -66,11 +73,6 @@ def detect_slides(project):
         #print(scene_record)
         project['scenes'].append(scene_record)
 
-
-#
-# TODO(v1.0): Refactor to take a SceneList object; consider moving this and save scene list
-# to a better spot, or just move them to scene_list.py.
-#
 def dedup_scene_list(scene_list: List[Tuple[FrameTimecode, FrameTimecode]],
                 video: VideoStream,
                 output_dir: Optional[str] = None) -> Dict[int, List[str]]:
@@ -81,18 +83,18 @@ def dedup_scene_list(scene_list: List[Tuple[FrameTimecode, FrameTimecode]],
 
     framerate = scene_list[0][0].framerate
 
-    num_images = 1
+    NUM_IMAGES = 1
     timecode_list = [
         [
             FrameTimecode(int(f), fps=framerate) for f in [
                                                                                                # middle frames
                 a[len(a) // 2]
                                                                                                # for each evenly-split array of frames in the scene list
-                for j, a in enumerate(np.array_split(r, num_images))
+                for j, a in enumerate(np.array_split(r, NUM_IMAGES))
             ]
         ] for i, r in enumerate([
                                                                                                # pad ranges to number of images
-            r if 1 + r[-1] - r[0] >= num_images else list(r) + [r[-1]] * (num_images - len(r))
+            r if 1 + r[-1] - r[0] >= NUM_IMAGES else list(r) + [r[-1]] * (NUM_IMAGES - len(r))
                                                                                                # create range of frames in scene
             for r in (
                 range(
@@ -108,7 +110,7 @@ def dedup_scene_list(scene_list: List[Tuple[FrameTimecode, FrameTimecode]],
     deduped_scene_list = []
     last_frame_text = []
     for i, scene_timecodes in enumerate(timecode_list):
-        for j, image_timecode in enumerate(scene_timecodes):
+        for image_timecode in scene_timecodes:
             video.seek(image_timecode)
             frame_im = video.read()
             if frame_im is not None:
@@ -127,7 +129,6 @@ def dedup_scene_list(scene_list: List[Tuple[FrameTimecode, FrameTimecode]],
 
     return deduped_scene_list
 
-
 def tesseract_ocr(frame_im):
         img_rgb = cv2.cvtColor(frame_im, cv2.COLOR_BGR2RGB)
         text_frames = pytesseract.image_to_data(img_rgb, lang='eng')
@@ -142,9 +143,7 @@ def tesseract_ocr(frame_im):
         return frame_text
 
 def frame_to_text(frame_im, last_frame_text):
-
     frame_text = tesseract_ocr(frame_im)
-
     f1_text = " ".join(frame_text)
     f2_text = " ".join(last_frame_text)
     ratio = SequenceMatcher(None, f1_text, f2_text).ratio()

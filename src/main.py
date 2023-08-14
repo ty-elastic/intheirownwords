@@ -9,11 +9,10 @@ def main():
     parser.add_argument("title", help="title")
     parser.add_argument("kind", help="kind (webinar)")
     parser.add_argument("origin", help="origin (elastic)")
-    parser.add_argument("--disable_write", action='store_true', default=False, help="disable writing (test mode)")
-    parser.add_argument("--disable_slides", action='store_true', default=False, help="disable slide detect")
+    parser.add_argument("--save_frames", action='store_true', default=False, help="enable frame storage")
     args = parser.parse_args()
     config = vars(args)
     print(config)
-    prj.process(args.input, args.source_url, args.title, args.date, args.kind, args.origin, args.disable_write == False, args.disable_slides == False)
+    prj.process(args.input, args.source_url, args.title, args.date, args.kind, args.origin, args.save_frames == True)
 
 main()
