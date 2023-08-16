@@ -14,3 +14,5 @@ pytube
 
 streamlit
 streamlit-authenticator
+
+debugpy

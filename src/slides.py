@@ -23,8 +23,10 @@ import time
 SCENE_THRESHOLD=8.0
 FRAME_SKIP=149
 
-TESSERACT_OCR_THRESHOLD = 90
+TESSERACT_OCR_THRESHOLD = 85
 OCR_DUP_THRESHOLD = 0.75
+OCR_TOO_MANY_RECTS_THRESHOLD = 100
+OCR_IGNORE_LOWER = 0.1
 
 IMAGE_FORMAT = "jpg"
 IMAGE_COMPRESSION = 90
@@ -72,6 +74,7 @@ def detect_slides(project):
         scene_record['end'] = scene['end']
         #print(scene_record)
         project['scenes'].append(scene_record)
+    #print(project['scenes'])
 
 def dedup_scene_list(scene_list: List[Tuple[FrameTimecode, FrameTimecode]],
                 video: VideoStream,
@@ -109,37 +112,73 @@ def dedup_scene_list(scene_list: List[Tuple[FrameTimecode, FrameTimecode]],
 
     deduped_scene_list = []
     last_frame_text = []
+    current_scene = None
     for i, scene_timecodes in enumerate(timecode_list):
         for image_timecode in scene_timecodes:
             video.seek(image_timecode)
             frame_im = video.read()
             if frame_im is not None:
                 dup, last_frame_text = frame_to_text(frame_im, last_frame_text)
-                if dup is False and len(last_frame_text) > 0:
-                    scene = {"start":scene_list[i][0].get_seconds(), "end":scene_list[i][1].get_seconds(), "frame_num": image_timecode.get_frames(), "frame_text": last_frame_text}
-                    if output_dir is not None:
-                        file_path = f"{i + 1}-{image_timecode.get_frames()}.{IMAGE_FORMAT}"
-                        cv2.imwrite(get_and_create_path(file_path, output_dir), frame_im, imwrite_param)
-                        scene["frame_file"] = file_path
-                    deduped_scene_list.append(scene)
-                # else:
-                #     print("DROPPED", {"start":scene_list[i][0].get_seconds(), "end":scene_list[i][1].get_seconds(), "frame_num": image_timecode.get_frames(), "frame_text": last_frame_text})
+                if dup is False:
+                    if current_scene != None:
+                        deduped_scene_list.append(current_scene)
+                    if len(last_frame_text) > 0:
+                        current_scene = {"start":scene_list[i][0].get_seconds(), "end":scene_list[i][1].get_seconds(), "frame_num": image_timecode.get_frames(), "frame_text": last_frame_text}
+                        if output_dir is not None:
+                            file_path = f"{i + 1}-{image_timecode.get_frames()}.{IMAGE_FORMAT}"
+                            cv2.imwrite(get_and_create_path(file_path, output_dir), frame_im, imwrite_param)
+                            current_scene["frame_file"] = file_path
+                else:
+                    #print("dup frame, extend")
+                    if current_scene != None:
+                        current_scene["end"] = scene_list[i][1].get_seconds()
             else:
                 break
+    if current_scene is not None:
+        deduped_scene_list.append(current_scene)
 
     return deduped_scene_list
 
 def tesseract_ocr(frame_im):
-        img_rgb = cv2.cvtColor(frame_im, cv2.COLOR_BGR2RGB)
-        text_frames = pytesseract.image_to_data(img_rgb, lang='eng')
+        img_gray = cv2.cvtColor(frame_im, cv2.COLOR_BGR2GRAY)
+        thresh_img = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+
+        text_frames = pytesseract.image_to_data(thresh_img, lang='eng')
 
         frame_text = []
         reader = csv.DictReader(text_frames.split("\n"), delimiter="\t", quoting=csv.QUOTE_NONE)
         rects = [r for r in reader]
+        height, width = frame_im.shape[:2]
+
+        block_num = -1
+        block_text = []
+        block_conf = []
+        block_top = 0
+
         for rect in rects:
-            rect['text'] = rect['text'].strip()
-            if float(rect['conf']) > TESSERACT_OCR_THRESHOLD and rect['text'] != "":
-                frame_text.append(rect['text'])
+            if int(rect['block_num']) != block_num and block_num != -1:
+
+                #print(f"block_top={block_top}, block_conf={np.mean(block_conf)}, len(block_text)={len(block_text)}, block_text={block_text}")
+                if len(block_text) > 0 and len(block_text) < OCR_TOO_MANY_RECTS_THRESHOLD and block_top < height-(height * OCR_IGNORE_LOWER) and np.mean(block_conf) > TESSERACT_OCR_THRESHOLD:
+                    frame_text.append(" ".join(block_text))
+
+                block_text = []
+                block_conf = []
+                block_top = 0
+
+            if float(rect['conf']) != -1 and rect['text'].strip() != "":
+                block_text.append(rect['text'].strip())
+                #print(float(rect['conf']))
+                block_conf.append(float(rect['conf']))
+                if int(rect['top']) > block_top:
+                    block_top = int(rect['top'])
+            block_num = int(rect['block_num'])
+
+        #print(f"block_top={block_top}, block_conf={np.mean(block_conf)}, len(block_text)={len(block_text)}, block_text={block_text}")
+        if len(block_text) > 0 and len(block_text) < OCR_TOO_MANY_RECTS_THRESHOLD and block_top < height-(height * OCR_IGNORE_LOWER) and np.mean(block_conf) > TESSERACT_OCR_THRESHOLD:
+            frame_text.append(" ".join(block_text))
+
+        #print(frame_text)
         return frame_text
 
 def frame_to_text(frame_im, last_frame_text):
@@ -151,3 +190,19 @@ def frame_to_text(frame_im, last_frame_text):
         return True, frame_text
     else:
         return False, frame_text
+
+# def lineup(boxes):
+#     linebox = None
+#     for _, box in boxes.iterrows():
+#         if linebox is None: linebox = box           # first line begins
+#         elif box.top <= linebox.top+linebox.height: # box in same line
+#             linebox.top = min(linebox.top, box.top)
+#             linebox.width = box.left+box.width-linebox.left
+#             linebox.heigth = max(linebox.top+linebox.height, box.top+box.height)-linebox.top
+#             linebox.text += ' '+box.text
+#         else:                                       # box in new line
+#             yield linebox
+#             linebox = box                           # new line begins
+#     yield linebox                                   # return last line
+
+# lineboxes = pd.DataFrame.from_records(lineup(boxes))

@@ -6,6 +6,8 @@ VOICES_INDEX = "voices"
 VOICE_CONFIDENCE_THRESHOLD = 0.85
 
 def get_speakers(origin):
+    if origin is None:
+        return []
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
     with Elasticsearch([url], verify_certs=True) as es:
         query = { "term": { "origin": origin } }

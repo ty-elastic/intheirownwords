@@ -17,7 +17,7 @@ def speech_to_text(project):
 
     audio = whisperx.load_audio(project['conformed_audio'])
     result = model.transcribe(audio, batch_size=BATCH_SIZE, language='en')
-    # print(result["segments"]) # before alignment
+    #print(result["segments"]) # before alignment
 
     # delete model if low on GPU resources
     gc.collect()
@@ -28,7 +28,7 @@ def speech_to_text(project):
     model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=DEVICE)
     result = whisperx.align(result["segments"], model_a, metadata, audio, DEVICE, return_char_alignments=False)
 
-    # print(result["segments"]) # after alignment
+    #print(result["segments"]) # after alignment
 
     # delete model if low on GPU resources
     gc.collect()

@@ -1,26 +1,8 @@
-# -*- coding: utf-8 -*-
-#
-#            PySceneDetect: Python-Based Video Scene Detector
-#   -------------------------------------------------------------------
-#     [  Site:    https://scenedetect.com                           ]
-#     [  Docs:    https://scenedetect.com/docs/                     ]
-#     [  Github:  https://github.com/Breakthrough/PySceneDetect/    ]
-#
-# Copyright (C) 2014-2023 Brandon Castellano <http://www.bcastell.com>.
-# PySceneDetect is licensed under the BSD 3-Clause License; see the
-# included LICENSE file, or visit one of the above pages for details.
-#
-""":class:`ContentDetector` compares the difference in content between adjacent frames against a
-set threshold/score, which if exceeded, triggers a scene cut.
-
-This detector is available from the command-line as the `detect-content` command.
-"""
 from dataclasses import dataclass
 from typing import List, Optional
 
 import numpy
 import cv2
-
 from scenedetect.scene_detector import SceneDetector
 
 from PIL import Image
@@ -37,12 +19,7 @@ class SlideChangeDetector(SceneDetector):
         threshold: float = 4.0,
         min_scene_len: int = 15
     ):
-        """
-        Arguments:
-            threshold: Threshold the average change in pixel intensity must exceed to trigger a cut.
-            min_scene_len: Once a cut is detected, this many frames must pass before a new one can
-                be added to the scene list.
-        """
+
         super().__init__()
         self._threshold: float = threshold
         self._min_scene_len: int = min_scene_len
@@ -59,23 +36,21 @@ class SlideChangeDetector(SceneDetector):
     def _calculate_frame_score(self, frame_num: int, frame_img: numpy.ndarray) -> float:
         color_converted = cv2.cvtColor(frame_img, cv2.COLOR_BGR2GRAY)
         p1=Image.fromarray(color_converted)
-
         hash = imagehash.phash(p1)
-
+        
         if self._last_frame_hash is None:
             # Need another frame to compare with for score calculation.
             self._last_frame_hash = hash
             return 0.0
-
+        
         diff = hash - self._last_frame_hash
+
         self._last_frame_hash = hash
         return diff
 
 
     def process_frame(self, frame_num: int, frame_img: numpy.ndarray) -> List[int]:
-        """ Similar to ThresholdDetector, but using the HSV colour space DIFFERENCE instead
-        of single-frame RGB/grayscale intensity (thus cannot detect slow fades with this method).
-
+        """ 
         Arguments:
             frame_num: Frame number of frame that is being passed.
             frame_img: Decoded frame image (numpy.ndarray) to perform scene

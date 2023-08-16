@@ -12,7 +12,8 @@ done
 echo "models=$models"
 echo "voices=$voices"
 
-Q_AND_A_MODEL="deepset__roberta-base-squad2"
+#Q_AND_A_MODEL="deepset/roberta-base-squad2"
+Q_AND_A_MODEL="bert-large-uncased-whole-word-masking-finetuned-squad"
 
 set -o allexport
 source ../env.vars
@@ -27,7 +28,7 @@ if [ "$models" == "false" ]; then
   sudo docker run -it --rm elastic/eland \
       eland_import_hub_model \
         --url $ELASTICSEARCH_URL \
-        --hub-model-id deepset/roberta-base-squad2 \
+        --hub-model-id Q_AND_A_MODEL \
         --clear-previous \
         --start
 
@@ -40,6 +41,7 @@ if [ "$models" == "false" ]; then
   curl -XPOST "$ELASTICSEARCH_URL/_ml/trained_models/.elser_model_1/deployment/_start?deployment_id=for_search" -H "kbn-xsrf: reporting"
 fi
 
+echo "create origins"
 curl -XDELETE "$ELASTICSEARCH_URL/origins" -H "kbn-xsrf: reporting"
 curl -XPUT "$ELASTICSEARCH_URL/origins" -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d'
 {
@@ -58,6 +60,7 @@ curl -XPUT "$ELASTICSEARCH_URL/origins" -H "kbn-xsrf: reporting" -H "Content-Typ
 }
 }'
 
+echo "create clauses"
 curl -XDELETE "$ELASTICSEARCH_URL/clauses" -H "kbn-xsrf: reporting"
 curl -XPUT "$ELASTICSEARCH_URL/clauses" -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d'
 {
@@ -123,6 +126,7 @@ curl -XPUT "$ELASTICSEARCH_URL/clauses" -H "kbn-xsrf: reporting" -H "Content-Typ
 }
 }'
 
+echo "create clauses-embeddings"
 curl -XDELETE "$ELASTICSEARCH_URL/_ingest/pipeline/clauses-embeddings" -H "kbn-xsrf: reporting"
 curl -XPUT "$ELASTICSEARCH_URL/_ingest/pipeline/clauses-embeddings" -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d'
 {
@@ -162,6 +166,7 @@ curl -XPUT "$ELASTICSEARCH_URL/_ingest/pipeline/clauses-embeddings" -H "kbn-xsrf
 }'
 
 if [ "$voices" == "false" ]; then
+  echo "create voices"
   curl -XDELETE "$ELASTICSEARCH_URL/voices" -H "kbn-xsrf: reporting"
   curl -XPUT "$ELASTICSEARCH_URL/voices" -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d'
   {

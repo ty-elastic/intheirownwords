@@ -19,13 +19,31 @@ def add_origin(origin, logo_url, homepage_url):
         result = dict(res)
         return result['_id']
 
+def get_origins():
+    url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
+    with Elasticsearch([url], verify_certs=True) as es:
+
+        fields = ["origin"]
+        resp = es.search(index=ORIGINS_INDEX,
+                            fields=fields,
+                            size=100,
+                            source=False)
+        origins = []
+        for origin in resp['hits']['hits']:
+            doc = es_helpers.strip_field_arrays(origin['fields'])
+            origins.append(doc['origin'])
+        print(origins)
+        return origins
+
 def get_origin(origin):
+    if origin is None:
+        return None
 
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
     with Elasticsearch([url], verify_certs=True) as es:
         query = { "term": { "origin": origin } }
 
-        fields = ["origin", "logo_url", "homepage_url"]
+        fields = ["_id", "origin", "logo_url", "homepage_url"]
         resp = es.search(index=ORIGINS_INDEX,
                             query=query,
                             fields=fields,
@@ -36,3 +54,5 @@ def get_origin(origin):
             doc = es_helpers.strip_field_arrays(body)
             return doc
         return None
+    
+get_origins()

@@ -4,7 +4,9 @@ import os
 import job
 from pytube import YouTube
 import uuid
-import es_clauses
+import es_origins
+
+KINDS = ["Tutorial","Webinar","Meeting","Product","M"]
 
 APP_NAME = "Upload Video"
 st.set_page_config(layout="wide", page_title=APP_NAME)
@@ -38,7 +40,8 @@ with st.form("upload", clear_on_submit=True):
     title = st.text_input("Title")
     date = st.date_input("Date Recorded")
     kind = st.text_input("Media Kind", help="e.g., webinar, tutorial")
-    origin = st.text_input("Collection", help="e.g., company or organization name")
+    #origin = st.text_input("Collection", help="e.g., company or organization name")
+    origin = st.selectbox('Collection', es_origins.get_origins())
     save_frames = st.checkbox("Save Slide Content?", value=False, help="check to save frames with possible slide content as images")
     youtube_link = st.text_input("URL to YouTube Video", help='https://www.youtube.com/watch?v=dQw4w9WgXcQ')
     youtube_button = st.form_submit_button("Ingest from YouTube")

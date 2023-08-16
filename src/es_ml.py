@@ -3,7 +3,11 @@ from elasticsearch import Elasticsearch, helpers
 import nltk.data
 import os
 
-Q_AND_A_MODEL = "deepset__roberta-base-squad2"
+#Q_AND_A_MODEL = "deepset__roberta-base-squad2"
+#Q_AND_A_MODEL_CONFIG = "roberta"
+Q_AND_A_MODEL = "bert-large-uncased-whole-word-masking-finetuned-squad"
+Q_AND_A_MODEL_CONFIG = "bert"
+
 SENTENCE_TOKENIZER = "tokenizers/punkt/english.pickle"
 
 nltk.download('punkt')
@@ -17,10 +21,10 @@ def ask_question(context, question, strip=True):
         config = {"question_answering": {
             "question": question,
             "tokenization": {
-                "roberta": {
-                "truncate": "second",
-                "span": -1          
-                }
+                Q_AND_A_MODEL_CONFIG: {
+                    "truncate": "second",
+                    "span": -1          
+                    }
             }
         }}
 

@@ -20,6 +20,7 @@ CLAUSE_CONFIDENCE_THRESHOLD = 15
 def add_clauses(project):
     batch = []
     for clause in project['clauses']:
+        print(clause)
         batch.append(clause)
         if len(batch) >= 100:
             bulkLoadIndexPipeline(batch,CLAUSES_INDEX,CLAUSES_PIPELINE)
