@@ -2,13 +2,15 @@ import numpy as np
 import string
 from sentence_transformers import SentenceTransformer, util
 import es_clauses
+import es_ml
 
 MAX_THOUGHT_INTERRUPT = 2
-SIMILARITY_THRESHOLD = 0.4
+SIMILARITY_THRESHOLD = 0.3
 
 ELSER_TOKEN_LIMIT = 512
 
-sentence_sim_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+#sentence_sim_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+sentence_sim_model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
 def find_scenes(project, voice_start, voice_end):
     scenes = []
@@ -62,11 +64,11 @@ def create_clause(chunk, segment, project):
     return clause
 
 def split_chunk(chunk, clauses, project):
-    # print("---PRE")
-    # print(chunk['segments'])
+    print("---PRE")
+    print(chunk['segments'])
     chunk_segments = chunk_text(chunk['segments'])
-    # print("---POST")
-    # print(chunk_segments)
+    print("---POST")
+    print(chunk_segments)
 
     clause = None
     for chunk_segment in chunk_segments:
@@ -78,7 +80,7 @@ def split(project, segments):
     chunk = None
 
     for segment in segments:
-        #print(segment)
+        print(segment)
         if chunk is None:
             chunk = {'speaker_id':segment['speaker_id'], 'segments':[], 'scenes':[]}
         elif (segment['speaker_id'] != chunk['speaker_id']): # or (scene is not chunk['scene']):
@@ -151,7 +153,7 @@ def get_remaining_sims(segments, start):
         if token_count + segments[i]['word_count'] >= ELSER_TOKEN_LIMIT:
             print("hit token limit")
             return similarities, False
-        #print(f"{segments[start]['text']}, {segments[i]['text']}, {util.cos_sim(segments[start]['embedding'], segments[i]['embedding'])}")
+        print(f"{segments[start]['text']}, {segments[i]['text']}, {util.cos_sim(segments[start]['embedding'], segments[i]['embedding'])}")
         similarities.append(util.pytorch_cos_sim(segments[start]['embedding'], segments[i]['embedding']))
         token_count = token_count + segments[i]['word_count']
     return similarities, True
