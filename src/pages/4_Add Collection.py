@@ -7,6 +7,11 @@ import uuid
 import es_clauses
 import es_origins
 import s3
+from streamlit_tags import st_tags, st_tags_sidebar
+from hashlib import sha512
+
+KINDS = ['Webinar', 'Tutorial', 'Meeting']
+
 
 APP_NAME = "Collections"
 st.set_page_config(layout="wide", page_title=APP_NAME)
@@ -20,9 +25,7 @@ if st.session_state["authentication_status"] != True or st.session_state["userna
     st.stop()
 
 
-def validate_input(origin, homepage_url, uploaded_file):
-    if uploaded_file is None:
-        return False
+def validate_input(origin, homepage_url):
     if homepage_url is None or homepage_url.strip() == "":
         return False
     if origin is None or origin.strip() == "":
@@ -34,17 +37,20 @@ def validate_input(origin, homepage_url, uploaded_file):
 with st.form("upload", clear_on_submit=True):
     origin = st.text_input("Collection Name", help="e.g., company or organization name")
     homepage_url = st.text_input("Organization homepage URL", help='https://www.elastic.co/')
+    media_kinds = keywords = st_tags(
+        label='Media Kinds',
+        text='Press enter to add more',
+        value=KINDS,
+        maxtags = 20)
     uploaded_file = st.file_uploader("Logo", type=["svg","jpg","png"])
     upload_button = st.form_submit_button("Submit")
 
 if upload_button:
-    if validate_input(origin, homepage_url, uploaded_file):
-        split_tup = os.path.splitext(uploaded_file.name)
-        input = os.path.join(job.INGEST_DIR, str(uuid.uuid4()) + split_tup[1])
-        with open(input, "wb") as f:
-            f.write(uploaded_file.getbuffer())
-        logo_url = s3.upload_logo(input)
-        es_origins.add_origin(origin, logo_url, homepage_url)
-        os.remove(input)
+    if validate_input(origin, homepage_url):
+        origin_id = str(sha512(origin.encode('utf-8')).hexdigest())
+        logo_url = None
+        if uploaded_file:
+            logo_url = es_origins.upload_logo(uploaded_file, origin_id)
+        es_origins.add_origin(origin_id, origin, logo_url, homepage_url, media_kinds)
     else:
         st.error('incomplete form')

@@ -29,5 +29,6 @@ RUN pip install -r requirements.txt
 COPY src/es_*.py .
 COPY src/ui_helpers.py .
 COPY src/search.py .
+COPY doc/ui.md doc/ui.md
 
-ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "intheirownwords", "streamlit", "run", "search.py"]
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "intheirownwords", "streamlit", "run", "1_Search.py"]

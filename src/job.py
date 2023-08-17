@@ -45,7 +45,6 @@ def process_loop():
                         project['date'].strftime('%m/%d/%y'), 
                         project['kind'], 
                         project['origin'],
-                        True,
                         project['save_frames'])
             job['status'] = 'complete'
             job['duration'] = datetime.now() - started

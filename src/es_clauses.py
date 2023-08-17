@@ -81,24 +81,27 @@ def get_projects(origin):
         else:
             return None
 
-def get_media_kinds():
+def get_kinds(origin):
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
     with Elasticsearch([url], verify_certs=True) as es:
         aggs = {
-            "media_kinds" : {
-                "terms" : { "field" : "media_kind",  "size" : 100 }
+            "kinds" : {
+                "terms" : { "field" : "kind",  "size" : 100 }
             }
         }
 
-        fields = ["media_kind"]
+        query = { "term": { "origin": origin } }
+
+        fields = ["kind"]
         resp = es.search(index=CLAUSES_INDEX,
                             aggs=aggs,
                             fields=fields,
+                            query=query,
                             size=1,
                             source=False)
-        if len(resp['aggregations']['media_kinds']) > 0:
+        if len(resp['aggregations']['kinds']) > 0:
             media_kinds = []
-            for bucket in resp['aggregations']['media_kinds']['buckets']:
+            for bucket in resp['aggregations']['kinds']['buckets']:
                 media_kinds.append(bucket['key'])
             #print(origins)
             return media_kinds
@@ -130,7 +133,7 @@ def get_origins():
             return None
 
 
-def make_hybrid_query(origin, search_text, text_boost, keyword_boost, speaker_id=None):
+def make_hybrid_query(origin, search_text, text_boost, keyword_boost, speaker_id=None, kind=None):
     keywords = extract_keywords(search_text)
     print(keywords)
 
@@ -167,6 +170,11 @@ def make_hybrid_query(origin, search_text, text_boost, keyword_boost, speaker_id
     if speaker_id != None:
         query_text['bool']['filter'].append({
                         "term" : { "speaker.id" : speaker_id }
+                    })
+
+    if kind != None:
+        query_text['bool']['filter'].append({
+                        "term" : { "kind" : kind }
                     })
 
     #print(query_text)
@@ -243,7 +251,7 @@ def make_rrf_query(origin, search_text):
 
         return query_text, None
 
-def find_clauses(origin, search_text, method, speaker_id=None):
+def find_clauses(origin, search_text, method, speaker_id=None, kind=None):
 
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
     with Elasticsearch([url], verify_certs=True) as es:
@@ -264,7 +272,7 @@ def find_clauses(origin, search_text, method, speaker_id=None):
             if len(resp['hits']['hits']) > 0:
                 resp['hits']['hits'][0]['_score'] = CLAUSE_CONFIDENCE_THRESHOLD
         elif method == METHOD_HYBRID:
-            query = make_hybrid_query(origin, search_text, CLAUSE_TEXT_BOOST, CLAUSE_KEYWORD_BOOST, speaker_id=speaker_id)
+            query = make_hybrid_query(origin, search_text, CLAUSE_TEXT_BOOST, CLAUSE_KEYWORD_BOOST, speaker_id=speaker_id, kind=kind)
             resp = es.search(index=CLAUSES_INDEX,
                             query=query,
                             fields=fields,

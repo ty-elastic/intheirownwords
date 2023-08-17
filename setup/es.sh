@@ -55,6 +55,9 @@ curl -XPUT "$ELASTICSEARCH_URL/origins" -H "kbn-xsrf: reporting" -H "Content-Typ
     },
     "homepage_url": {
       "type": "keyword"
+    },
+    "kinds": {
+      "type": "keyword"
     }
   }
 }

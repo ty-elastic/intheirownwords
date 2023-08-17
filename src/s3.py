@@ -20,5 +20,5 @@ def upload_logo(local_path):
     remote_path = ORIGIN_BUCKET + "/" 
     remote_path += file_name
     response = s3_client.upload_file(local_path, os.getenv('AWS_S3_BUCKET'), remote_path)
-    #print(response)
+    print(response)
     return "https://" + os.getenv('AWS_S3_BUCKET') + ".s3.amazonaws.com/" + remote_path

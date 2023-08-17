@@ -1,4 +1,9 @@
 import re
+from pathlib import Path
+import streamlit as st
+
+def read_markdown_file(markdown_file):
+    return Path(markdown_file).read_text()
 
 def highlight_sentence(sentences, i):
     text = "### _\""
