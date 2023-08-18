@@ -135,7 +135,7 @@ def get_origins():
 
 def make_hybrid_query(origin, search_text, text_boost, keyword_boost, speaker_id=None, kind=None):
     keywords = extract_keywords(search_text)
-    print(keywords)
+    print(f"keywords={keywords}")
 
     query_text = {
                 "bool": { 
