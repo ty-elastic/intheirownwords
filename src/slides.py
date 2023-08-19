@@ -190,19 +190,3 @@ def frame_to_text(frame_im, last_frame_text):
         return True, frame_text
     else:
         return False, frame_text
-
-# def lineup(boxes):
-#     linebox = None
-#     for _, box in boxes.iterrows():
-#         if linebox is None: linebox = box           # first line begins
-#         elif box.top <= linebox.top+linebox.height: # box in same line
-#             linebox.top = min(linebox.top, box.top)
-#             linebox.width = box.left+box.width-linebox.left
-#             linebox.heigth = max(linebox.top+linebox.height, box.top+box.height)-linebox.top
-#             linebox.text += ' '+box.text
-#         else:                                       # box in new line
-#             yield linebox
-#             linebox = box                           # new line begins
-#     yield linebox                                   # return last line
-
-# lineboxes = pd.DataFrame.from_records(lineup(boxes))

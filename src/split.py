@@ -16,6 +16,9 @@ from sentence_transformers import SentenceTransformer
 import pandas as pd
 from functools import reduce
 
+import split_v1
+import split_v2
+
 MAX_THOUGHT_INTERRUPT = 1
 SIMILARITY_THRESHOLD = 0.4
 
@@ -78,7 +81,7 @@ def create_clause(chunk, segment, project):
 def split_chunk(chunk, clauses, project):
     # print("---PRE")
     # print(chunk['segments'])
-    chunk_segments = chunk_text(chunk['segments'])
+    chunk_segments = split_v2.chunk_text(chunk['segments'])
     # print("---POST")
     # for cs in chunk_segments:
     #     print("    ")
@@ -109,81 +112,6 @@ def split(project, segments):
     # print(clauses)
     return clauses
 
-def chunk_text1(segments):
-    for segment in segments:
-        #print(segment)
-        segment['word_count'] = count_words(segment['text'])
-        segment['embedding'] = sentence_sim_model.encode(segment['text'])
-
-    #print(segments)
-
-    # Get the points where we need to split the text
-    cut_points = get_cut_points(segments)
-    for segment in segments:
-        del segment['embedding']
-
-    # Initiate text to append to
-    thoughts = []
-    thought = None
-    for num, segment in enumerate(segments):
-        if thought == None:
-            thought = {"start":segment['start'], "text":[]}
-        elif num in cut_points:
-            thoughts.append(thought)
-            thought = {"start":segment['start'], "text":[]}
-        thought['text'].append(segment['text'].strip())
-        thought['end'] = segment['end']
-    if thought is not None:
-        thoughts.append(thought)
-    # print(thoughts)
-    return thoughts
-
-def count_words(sentence):
-    return sum([i.strip(string.punctuation).isalpha() for i in sentence.split()])
-
-def get_next_cut(remaining_sims, eof):
-    dissim_start = []
-    for i, sim in enumerate(remaining_sims):
-        #print(sim)
-        if sim < SIMILARITY_THRESHOLD: 
-            if len(dissim_start) >= MAX_THOUGHT_INTERRUPT:
-                return dissim_start[0]+1
-            # allow up to MAX_THOUGHT_INTERRUPT non-related sentences in between 2 related sentences
-            else:
-                dissim_start.append(i)
-        else:
-            dissim_start = []
-    if len(dissim_start) > 0:
-        return dissim_start[0]+1
-    elif eof:
-        return None
-    else:
-        return len(remaining_sims)
-
-def get_remaining_sims(segments, start): 
-    similarities = []
-    token_count = 0
-    for i in range(start+1, len(segments)):
-        if token_count + segments[i]['word_count'] >= ELSER_TOKEN_LIMIT:
-            print("hit token limit")
-            return similarities, False
-        print(f"{segments[start]['text']}, {segments[i]['text']}, {util.cos_sim(segments[start]['embedding'], segments[i]['embedding'])}")
-        similarities.append(util.pytorch_cos_sim(segments[start]['embedding'], segments[i]['embedding']))
-        token_count = token_count + segments[i]['word_count']
-    return similarities, True
-
-def get_cut_points(segments) -> list:
-    cut_points = []
-    i = 0
-    while i < len(segments)-1:
-        remaining_sims, eof = get_remaining_sims(segments, i)
-        cut_point = get_next_cut(remaining_sims, eof)
-        if cut_point is None:
-            break
-        i = cut_point + i
-        cut_points.append(i)
-    #print(cut_points)
-    return cut_points
 
 # test = "Hi I'm a banana. The federal government has released enough food and water to support to 5,000 people for five days as part of the ongoing response to the devastating Hawaii wildfires, a White House spokesperson said Friday. The Federal Emergency Management Agency is continuing to work on providing more shelter supplies, such as water, food and blankets, for people impacted in the state, the spokesperson added. The Coast Guard, Navy National Guard and Army are all working to support response and rescue efforts.  The United States Department of Agriculture has also established a Type 3 Incident Management Team and is supporting requests from the state for wildfire liaisons. President Joe Biden issued a federal disaster declaration on Thursday, promising to send whatever is needed to help the recovery. Assistance from the declaration can include grants for temporary housing and home repairs, low-cost loans to cover uninsured property losses and other programs to help with recovery. Now let's talk about computers. I like to eat toothpaste. Toothpaste is great for teeth. PCs are amazing machines."
 # ss = es_ml.split_sentences(test + " " + test + " " + test + " " + test + " " + test + " " + test + " " + test + " " + test + " " + test)
@@ -211,78 +139,3 @@ def get_cut_points(segments) -> list:
 #     print(seg)
 #     print(" --")
 
-# inspired by https://github.com/poloniki/quint
-
-SPACE_SIZE = 20
-MAX_P_SIZE = 1
-ORDER = 1
-
-def chunk_text(segments):
-    return chunk_text2(segments)
-
-def chunk_text2(segments):
-    df = pd.DataFrame(segments)
-    embeddings = sentence_sim_model.encode(df['text'])
-
-    # Get the points where we need to split the text
-    true_middle_points = get_middle_points(embeddings)
-    # Initiate text to append to
-    segments = []
-    thought = None
-    for num, segment in df.iterrows():
-        segment.text = segment.text.strip()
-        if thought == None:
-            thought = {"start":segment.start, "text":[]}
-        elif np.isin(num, true_middle_points) or reduce(lambda sum,element:sum+count_words(element), thought['text'], 0)+count_words(segment.text) >= ELSER_TOKEN_LIMIT:
-            segments.append(thought)
-            thought = {"start":segment.start, "text":[]}
-        thought['text'].append(segment.text)
-        thought['end'] = segment.end
-    if thought is not None:
-        segments.append(thought)
-    #print(segments)
-    return segments
-
-def rev_sigmoid(x:float)->float:
-    return (1 / (1 + math.exp(0.5*x)))
-
-def activate_similarities(similarities:np.array, p_size)->np.array:
-        """ Function returns list of weighted sums of activated sentence similarities
-        Args:
-            similarities (numpy array): it should square matrix where each sentence corresponds to another with cosine similarity
-            p_size (int): number of sentences are used to calculate weighted sum
-        Returns:
-            list: list of weighted sums
-        """
-        # To create weights for sigmoid function we first have to create space. P_size will determine number of sentences used and the size of weights vector.
-        x = np.linspace(-SPACE_SIZE,SPACE_SIZE,p_size)
-        # Then we need to apply activation function to the created space
-        y = np.vectorize(rev_sigmoid)
-        # Because we only apply activation to p_size number of sentences we have to add zeros to neglect the effect of every additional sentence and to match the length ofvector we will multiply
-        activation_weights = np.pad(y(x),(0,similarities.shape[0]-p_size))
-        ### 1. Take each diagonal to the right of the main diagonal
-        diagonals = [similarities.diagonal(each) for each in range(0,similarities.shape[0])]
-        ### 2. Pad each diagonal by zeros at the end. Because each diagonal is different length we should pad it with zeros at the end
-        diagonals = [np.pad(each, (0,similarities.shape[0]-len(each))) for each in diagonals]
-        ### 3. Stack those diagonals into new matrix
-        diagonals = np.stack(diagonals)
-        ### 4. Apply activation weights to each row. Multiply similarities with our activation.
-        diagonals = diagonals * activation_weights.reshape(-1,1)
-        ### 5. Calculate the weighted sum of activated similarities
-        activated_similarities = np.sum(diagonals, axis=0)
-        return activated_similarities
-
-def get_middle_points(embeddings:np.array) -> list:
-    # Create similarities matrix
-    similarities = cosine_similarity(embeddings)
-
-    p_size = MAX_P_SIZE
-    if p_size > similarities.shape[0]:
-        p_size = similarities.shape[0]
-
-    # Let's apply our function. For long sentences i reccomend to use 10 or more sentences
-    activated_similarities = activate_similarities(similarities, p_size=p_size)
-
-    ### 6. Find relative minima of our vector. For all local minimas and save them to variable with argrelextrema function
-    minmimas = argrelextrema(activated_similarities, np.less, order=ORDER) #order parameter controls how frequent should be splits. I would not reccomend changing this parameter.
-    return minmimas

@@ -24,7 +24,6 @@ def validate_input(origin, homepage_url):
         return False
     return True
 
-
 create_new = st.checkbox('Create New Collection', key="create_new", value=True)
 
 origins = es_origins.get_origins()

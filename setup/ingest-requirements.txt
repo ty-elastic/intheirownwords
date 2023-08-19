@@ -10,9 +10,10 @@ elasticsearch
 sentence-transformers
 yake
 nltk
-pytube
+git+https://github.com/oncename/pytube
 
 streamlit
 streamlit-authenticator
+streamlit-tags
 
 debugpy
