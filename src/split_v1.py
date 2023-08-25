@@ -2,7 +2,7 @@ import string
 from sentence_transformers import SentenceTransformer, util
 
 MAX_THOUGHT_INTERRUPT = 1
-SIMILARITY_THRESHOLD = 0.4
+SIMILARITY_THRESHOLD = 0.5
 
 ELSER_TOKEN_LIMIT = 512
 
@@ -67,7 +67,7 @@ def get_remaining_sims(segments, start):
         if token_count + segments[i]['word_count'] >= ELSER_TOKEN_LIMIT:
             print("hit token limit")
             return similarities, False
-        print(f"{segments[start]['text']}, {segments[i]['text']}, {util.cos_sim(segments[start]['embedding'], segments[i]['embedding'])}")
+        #print(f"{segments[start]['text']}, {segments[i]['text']}, {util.cos_sim(segments[start]['embedding'], segments[i]['embedding'])}")
         similarities.append(util.pytorch_cos_sim(segments[start]['embedding'], segments[i]['embedding']))
         token_count = token_count + segments[i]['word_count']
     return similarities, True

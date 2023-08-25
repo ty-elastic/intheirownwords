@@ -16,4 +16,7 @@ streamlit
 streamlit-authenticator
 streamlit-tags
 
+fastapi
+uvicorn[standard]
+
 debugpy

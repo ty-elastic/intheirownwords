@@ -14,13 +14,12 @@ from functools import reduce
 
 ELSER_TOKEN_LIMIT = 512
 
-SPACE_SIZE = 20
-MAX_P_SIZE = 1
-ORDER = 1
+SPACE_SIZE = 5
+MAX_P_SIZE = 5
+ORDER = 2
 
 # inspired by https://github.com/poloniki/quint
 
-#sentence_sim_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 sentence_sim_model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
 def chunk_text(segments):

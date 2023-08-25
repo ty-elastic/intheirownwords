@@ -1,31 +1,8 @@
-import numpy as np
-import string
-from sentence_transformers import SentenceTransformer, util
-import es_clauses
+
 import es_ml
-
-import numpy as np
-# Library to import pre-trained model for sentence embeddings
-# Calculate similarities between sentences
-from sklearn.metrics.pairwise import cosine_similarity
-# package for finding local minimas
-from scipy.signal import argrelextrema
-import math
-
-from sentence_transformers import SentenceTransformer
-import pandas as pd
-from functools import reduce
 
 import split_v1
 import split_v2
-
-MAX_THOUGHT_INTERRUPT = 1
-SIMILARITY_THRESHOLD = 0.4
-
-ELSER_TOKEN_LIMIT = 512
-
-#sentence_sim_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-sentence_sim_model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
 def find_scenes(project, voice_start, voice_end):
     scenes = []
@@ -71,6 +48,8 @@ def create_clause(chunk, segment, project):
     clause['media_url'] = project['media_url']
     clause['title'] = project['title']
     clause['date'] = project['date'].strftime('%Y-%m-%d')
+    clause['date_uploaded'] = project['date_uploaded'].strftime('%Y-%m-%d')
+    clause['persist_days'] = project['persist_days']
     clause['kind'] = project['kind']
     clause['origin'] = project['origin']
     clause['source_url'] = project['source_url']
@@ -132,7 +111,7 @@ def split(project, segments):
 # for i, s in enumerate(ss):
 #     segment = {"start": i, "end":i, "text":s}
 #     segments.append(segment)
-# chunk_segments = chunk_text(segments)
+# chunk_segments = split_v1.chunk_text(segments)
 
 # print("---POST")
 # for seg in chunk_segments:

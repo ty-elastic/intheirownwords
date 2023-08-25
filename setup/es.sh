@@ -123,8 +123,15 @@ curl -XPUT "$ELASTICSEARCH_URL/clauses" -H "kbn-xsrf: reporting" -H "Content-Typ
     },
     "end": {
       "type": "float"
-    }
+    },
     
+    "date_uploaded": {
+      "type": "date"
+    },
+    "persist_days": {
+      "type": "integer"
+    }
+
   }
 }
 }'

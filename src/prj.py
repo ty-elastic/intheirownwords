@@ -34,7 +34,7 @@ def conform_audio(project):
     except ffmpeg.Error as e:
         raise RuntimeError(f"Failed to load audio: {e.stderr.decode()}") from e
 
-def create_project(input, source_url, title, date, kind, origin, save_frames):
+def create_project(input, source_url, title, date, kind, origin, save_frames, persist_days):
 
     project_id = str(uuid.uuid4())
     prj_path = os.path.join(PROJECT_DIR, project_id)
@@ -55,6 +55,8 @@ def create_project(input, source_url, title, date, kind, origin, save_frames):
         "origin": origin,
         "source_url": source_url,
         "save_frames": save_frames,
+        "persist_days": persist_days,
+        "date_uploaded": datetime.now(),
         "scenes": []
     }
     print(project)
@@ -63,10 +65,10 @@ def create_project(input, source_url, title, date, kind, origin, save_frames):
     return project
 
 
-def process(input, source_url, title, date, kind, origin, save_frames):
+def process(input, source_url, title, date, kind, origin, save_frames, persist_days):
     start_time = time.time()
 
-    project = prj.create_project(input, source_url, title, date, kind, origin, save_frames)
+    project = prj.create_project(input, source_url, title, date, kind, origin, save_frames, persist_days)
     print ("conform_audio")
     prj.conform_audio(project)
 

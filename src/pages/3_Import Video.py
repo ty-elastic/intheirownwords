@@ -56,16 +56,8 @@ with st.form("upload", clear_on_submit=True):
 
 if youtube_button:
     if validate_input(source_url, title, kind, origin, youtube_link, uploaded_file):
-        print(youtube_link)
-        yt = YouTube(youtube_link)
-        videos = yt.streams.filter(progressive=True, file_extension='mp4').desc()
-
-        print(videos)
-
-        input = videos.first().download(output_path=job.INGEST_DIR,skip_existing=False,filename=str(uuid.uuid4()) + ".mp4")
-        print(input)
-        job.enqueue(input, source_url, title, date,
-                    kind, origin, save_frames)
+        job.enqueue(source_url, title, date,
+                    kind, origin, save_frames, youtube_url=youtube_link)
     else:
         st.error('incomplete form')
 
@@ -76,7 +68,7 @@ if upload_button:
         with open(input, "wb") as f:
             f.write(uploaded_file.getbuffer())
 
-        job.enqueue(input, source_url, title, date,
-                    kind, origin, save_frames)
+        job.enqueue(source_url, title, date,
+                    kind, origin, save_frames, input=input)
     else:
         st.error('incomplete form')

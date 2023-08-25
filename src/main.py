@@ -10,9 +10,10 @@ def main():
     parser.add_argument("kind", help="kind (webinar)")
     parser.add_argument("origin", help="origin (elastic)")
     parser.add_argument("--save_frames", action='store_true', default=False, help="enable frame storage")
+    parser.add_argument("--persist_days", default=30, help="persist records for n days")
     args = parser.parse_args()
     config = vars(args)
     print(config)
-    prj.process(args.input, args.source_url, args.title, args.date, args.kind, args.origin, args.save_frames == True)
+    prj.process(args.source_url, args.title, args.date, args.kind, args.origin, args.save_frames == True, args.persist, input=args.input)
 
 main()
