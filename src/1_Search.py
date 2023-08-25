@@ -10,6 +10,9 @@ import es_voices
 import pandas as pd
 import ui_helpers
 import es_origins
+import api
+
+api.dummy() 
 
 if 'authentication_status' not in st.session_state:
     st.session_state['authentication_status'] = False

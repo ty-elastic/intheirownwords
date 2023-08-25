@@ -15,8 +15,3 @@ git+https://github.com/oncename/pytube
 streamlit
 streamlit-authenticator
 streamlit-tags
-
-fastapi
-uvicorn[standard]
-
-debugpy

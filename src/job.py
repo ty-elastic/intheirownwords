@@ -68,6 +68,7 @@ def process_loop():
         q.task_done()
         
 def start():
+    print('start q')
     t = threading.Thread(target=process_loop)
     t.daemon = True
     t.start()

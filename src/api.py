@@ -1,29 +1,22 @@
 
 import job
-from pytube import YouTube
-import uuid
-from fastapi import FastAPI
-from pydantic import BaseModel
 from datetime import datetime
-import threading
-
-
-def ingest(upload):
-
-
-    print(input)
-    job.enqueue(upload['source_url'], upload['title'], datetime.strptime(upload['date'], '%Y-%m-%d'),
-                upload['kind'], upload['origin'], upload['save_frames'], youtube_url=upload['youtube_url'])
-    print("done")
-    
 import json
 import http.server
 import socketserver
 from typing import Tuple
 from http import HTTPStatus
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import simplejson
-import random
+from http.server import HTTPServer
+import threading
+
+
+API_PORT=8000
+
+def ingest(upload):
+    print(input)
+    job.enqueue(upload['source_url'], upload['title'], datetime.strptime(upload['date'], '%Y-%m-%d'),
+                upload['kind'], upload['origin'], upload['save_frames'], youtube_url=upload['youtube_url'])
+    print("done")
 
 class Handler(http.server.SimpleHTTPRequestHandler):
 
@@ -33,13 +26,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     @property
     def api_response(self):
         return json.dumps({"message": "Hello world"}).encode()
-
-    # def do_POST(self):
-    #     if self.path == '/import/youtube':
-    #         self.send_response(HTTPStatus.OK)
-    #         self.send_header("Content-Type", "application/json")
-    #         self.end_headers()
-    #         self.wfile.write(bytes(self.api_response))
 
     def do_GET(self):
         self.send_response(HTTPStatus.OK)
@@ -60,17 +46,20 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
 
 def process_loop():
-    PORT = 8000
     # Create an object of the above class
-    my_server = HTTPServer(('', PORT), Handler)
+    my_server = HTTPServer(('', API_PORT), Handler)
     # Star the server
-    print(f"Server started at {PORT}")
+    print(f"Server started at {API_PORT}")
     my_server.serve_forever()
 
-# def start():
-#     t = threading.Thread(target=process_loop)
-#     t.daemon = True
-#     t.start()
+def start():
+    print("start api")
+    t = threading.Thread(target=process_loop)
+    t.daemon = True
+    t.start()
 
-# start()
-process_loop()
+start()
+# process_loop()
+
+def dummy():
+    return True
