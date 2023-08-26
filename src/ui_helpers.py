@@ -12,9 +12,20 @@ def highlight_sentence(sentences, i):
         if n > 0:
             text = text + " "
         if i == n:
-            text = text + ":orange[_" + escaped + "_]"
+            text = text + ":orange[" + escaped + "]"
         else:
             text = text + escaped
+    text = text + "\"_"
+    return text
+
+def highlight_passage(context, start, stop):
+    text = "### _\""
+    escaped = escape_markdown(context[:start])
+    text = text + escaped
+    escaped = escape_markdown(context[start:stop])
+    text = text + ":orange[" + escaped + "]"
+    escaped = escape_markdown(context[stop:])
+    text = text + escaped
     text = text + "\"_"
     return text
 
@@ -43,6 +54,6 @@ def escape_markdown(text: str, version: int = 1, entity_type: str = None) -> str
     else:
         raise ValueError('Markdown version must be either 1 or 2!')
 
-    text = text.replace("$", "").strip()
+    text = text.replace("$", "")
 
     return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)

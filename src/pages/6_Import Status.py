@@ -26,7 +26,7 @@ data = {
     "origin": [],
     "title": [],
     "status": [],
-    "started": [],
+    "queued": [],
     "duration": []
 }
 jobs = job.get_status()
@@ -35,7 +35,7 @@ for j in jobs:
         data['origin'].append(j['origin'])
         data['title'].append(j['title'])
         data['status'].append(j['status'])
-        data['started'].append(j['started'])
+        data['queued'].append(j['queued'])
         data['duration'].append(str(j['duration']))
 
 df = pd.DataFrame(data)

@@ -121,15 +121,22 @@ if st.session_state["authentication_status"]:
                         answer = es_ml.ask_question(results['text'], query)
                         context_answer = None
                         if answer is not None:
-                            context_answer, i, sentences = es_ml.find_sentence_that_answers_question(results['text'], query, answer)
-                            if context_answer is not None:
-                                text = ui_helpers.highlight_sentence(sentences, i)
-                                st.markdown(text)
-                            else:
-                                escaped = ui_helpers.escape_markdown(results['text'])
-                                text = ":orange[_\"" + escaped + "\"_]"
-                                st.markdown(text)
-                        
+
+                            # context_answer, i, sentences = es_ml.find_sentence_that_answers_question(results['text'], query, answer)
+                            # if context_answer is not None:
+                            #     text = ui_helpers.highlight_sentence(sentences, i)
+                            #     st.markdown(text)
+                            # else:
+                            #     escaped = ui_helpers.escape_markdown(results['text'])
+                            #     text = "### _\""
+                            #     text = text + ":orange[" + escaped + "]"
+                            #     text = text + "\"_"
+                            #     st.markdown(text)
+
+                            start, stop = es_ml.find_text_that_answers_question(results['text'], answer)
+                            text = ui_helpers.highlight_passage(results['text'], start, stop)
+                            st.markdown(text)
+
                         if 'speaker.name' in results:
                             title = "**" + results['speaker.name'] + "**, " + results['speaker.title'] + ", " + results['speaker.company']
                             if 'speaker.email' in results:

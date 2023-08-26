@@ -26,7 +26,7 @@ def enqueue(source_url, title, date, kind, origin, save_frames, persist_days=PER
         "source_url": source_url,
         "save_frames": save_frames,
         'status': 'queued',
-        'started': datetime.now(),
+        'queued': datetime.now(),
         'duration': 0,
         'persist_days': persist_days,
         'youtube_url': youtube_url
