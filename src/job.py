@@ -58,12 +58,12 @@ def process_loop():
                         project['origin'],
                         project['save_frames'],
                         project['persist_days'])
-            job['status'] = 'complete'
-            job['duration'] = datetime.now() - started
+            job['status'] = 'complete'      
         except Exception as inst:
             job['status'] = 'error'
             traceback.print_exc()
-        if os.path.exists(project['input']):
+        job['duration'] = datetime.now() - started
+        if project['input'] is not None and os.path.exists(project['input']):
             os.remove(project['input'])
         q.task_done()
         
