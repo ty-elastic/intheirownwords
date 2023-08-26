@@ -11,6 +11,7 @@ from pytube import YouTube
 
 INGEST_DIR="ingest"
 PERSIST_DAYS_DEFAULT=30
+YT_RETRIES=2
 
 q = queue.Queue()
 jobs = []
@@ -34,6 +35,20 @@ def enqueue(source_url, title, date, kind, origin, save_frames, persist_days=PER
     q.put(project)
     jobs.append(project)
 
+def download_from_youtube(project):
+    # Perform bulk insertion
+    for i in range(YT_RETRIES):
+        try:
+            yt = YouTube(project['youtube_url'])
+            videos = yt.streams.filter(progressive=True, file_extension='mp4').desc()
+            print(videos)
+            project['input'] = videos.first().download(output_path=INGEST_DIR,skip_existing=False,filename=str(uuid.uuid4()) + ".mp4")
+            print(project['input'])
+            return
+        except Exception as inst:
+            traceback.print_exc()
+    raise Exception("failed to download yt video")
+
 def process_loop():
     while True:
         project = q.get()
@@ -44,11 +59,7 @@ def process_loop():
 
         try:
             if project['youtube_url'] is not None:
-                yt = YouTube(project['youtube_url'])
-                videos = yt.streams.filter(progressive=True, file_extension='mp4').desc()
-                print(videos)
-                project['input'] = videos.first().download(output_path=INGEST_DIR,skip_existing=False,filename=str(uuid.uuid4()) + ".mp4")
-                print(project['input'])
+                download_from_youtube(project)
 
             prj.process(project['input'], 
                         project['source_url'], 

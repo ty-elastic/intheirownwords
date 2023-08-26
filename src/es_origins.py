@@ -15,7 +15,7 @@ def upload_logo(uploaded_file, origin_id):
     os.remove(input)
     return logo_url
 
-def add_origin(origin_id, origin, logo_url, homepage_url, media_kinds):
+def add_origin(origin_id, origin, logo_url, homepage_url, media_kinds, results_size):
 
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
     with Elasticsearch([url], verify_certs=True) as es:
@@ -27,7 +27,8 @@ def add_origin(origin_id, origin, logo_url, homepage_url, media_kinds):
                 'origin': origin,
                 'logo_url': logo_url,
                 'homepage_url': homepage_url,
-                'kinds': media_kinds 
+                'kinds': media_kinds,
+                'results.size': results_size
             })
         result = dict(res)
         return result['_id']
@@ -56,7 +57,7 @@ def get_origin(origin):
     with Elasticsearch([url], verify_certs=True) as es:
         query = { "term": { "origin": origin } }
 
-        fields = ["_id", "origin", "logo_url", "homepage_url", "kinds"]
+        fields = ["_id", "origin", "logo_url", "homepage_url", "kinds", "results.size"]
         resp = es.search(index=ORIGINS_INDEX,
                             query=query,
                             fields=fields,
@@ -68,7 +69,7 @@ def get_origin(origin):
             return doc
         return None
     
-def update_origin(origin_id, origin, logo_url, homepage_url, media_kinds):
+def update_origin(origin_id, origin, logo_url, homepage_url, media_kinds, results_size):
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
     # print(url)
 
@@ -80,7 +81,8 @@ def update_origin(origin_id, origin, logo_url, homepage_url, media_kinds):
                                 'origin': origin,
                                 'logo_url': logo_url,
                                 'homepage_url': homepage_url,
-                                'kinds': media_kinds 
+                                'kinds': media_kinds,
+                                'results.size': results_size
                              }
                          })
         print(resp)

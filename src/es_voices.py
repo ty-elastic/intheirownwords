@@ -59,6 +59,7 @@ def get_unassigned_voices(origin):
             doc = es_helpers.strip_field_arrays(voice['fields'])
             docs.append(doc)
         # print(docs)
+        print(f"unassigned voices={len(docs)}")
         return docs
 
 

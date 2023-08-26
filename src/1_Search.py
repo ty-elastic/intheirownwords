@@ -28,6 +28,7 @@ st.set_page_config(layout="wide", page_title=APP_NAME)
 
 METHOD_RRF="RRF"
 METHOD_HYBRID="Hybrid"
+MAX_RESULTS = 2
 
 SEARCH_METHODS = [es_clauses.METHOD_HYBRID, es_clauses.METHOD_RRF]
 
@@ -107,40 +108,43 @@ if st.session_state["authentication_status"]:
                     speaker = None
                 if kind == 'any':
                     kind = None
-                results = es_clauses.find_clauses(origin, query, method, speaker_id=speaker, kind=kind)
+                size = None
+                if origin_rec != None:
+                    size = origin_rec['results.size']
+                clauses = es_clauses.find_clauses(origin, query, method, speaker_id=speaker, kind=kind, size=size)
 
-                if results != None:
-                    text = "#### " + "[" + results['title'] + "](" + results["source_url"] + ")"
+                for clause in clauses:
+                    text = "#### " + "[" + clause['title'] + "](" + clause["source_url"] + ")"
                     st.markdown(text)
-                    text = results['date'].strftime('%Y-%m-%d')
+                    text = clause['date'].strftime('%Y-%m-%d')
                     st.markdown(text)
 
                     col1, col2, = st.columns(2)
 
                     with col1:
-                        answer = es_ml.ask_question(results['text'], query)
+                        answer = es_ml.ask_question(clause['text'], query)
                         context_answer = None
                         if answer is not None:
 
-                            # context_answer, i, sentences = es_ml.find_sentence_that_answers_question(results['text'], query, answer)
+                            # context_answer, i, sentences = es_ml.find_sentence_that_answers_question(clause['text'], query, answer)
                             # if context_answer is not None:
                             #     text = ui_helpers.highlight_sentence(sentences, i)
                             #     st.markdown(text)
                             # else:
-                            #     escaped = ui_helpers.escape_markdown(results['text'])
+                            #     escaped = ui_helpers.escape_markdown(clause['text'])
                             #     text = "### _\""
                             #     text = text + ":orange[" + escaped + "]"
                             #     text = text + "\"_"
                             #     st.markdown(text)
 
-                            start, stop = es_ml.find_text_that_answers_question(results['text'], answer)
-                            text = ui_helpers.highlight_passage(results['text'], start, stop)
+                            start, stop = es_ml.find_text_that_answers_question(clause['text'], answer)
+                            text = ui_helpers.highlight_passage(clause['text'], start, stop)
                             st.markdown(text)
 
-                        if 'speaker.name' in results:
-                            title = "**" + results['speaker.name'] + "**, " + results['speaker.title'] + ", " + results['speaker.company']
-                            if 'speaker.email' in results:
-                                text = "[" + title + "](mailto:" + results['speaker.email'] + ")"
+                        if 'speaker.name' in clause:
+                            title = "**" + clause['speaker.name'] + "**, " + clause['speaker.title'] + ", " + clause['speaker.company']
+                            if 'speaker.email' in clause:
+                                text = "[" + title + "](mailto:" + clause['speaker.email'] + ")"
                             else:
                                 text = "" + title
                             st.markdown(text)
@@ -150,7 +154,9 @@ if st.session_state["authentication_status"]:
                         with placeholder:
                             with st.spinner('loading...'):
                                 time.sleep(0.1)
-                            placeholder.video(results['media_url'], format="video/mp4", start_time=int(results['start']))
+                            placeholder.video(clause['media_url'], format="video/mp4", start_time=int(clause['start']))
+
+                    st.write("---")
 
                         # st.write("---")
                         # if 'scene.frame_url' in results:

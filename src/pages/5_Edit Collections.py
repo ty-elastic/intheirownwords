@@ -41,7 +41,7 @@ if create_new:
     origin_record = None
     origin_selection = ''
 if origin_record is None:
-    origin_record = {'origin':origin_selection, 'homepage_url':'', 'kinds':KINDS}
+    origin_record = {'origin':origin_selection, 'homepage_url':'', 'kinds':KINDS, 'results.size':1}
 print(origin_record)
 
 origin=origin_record['origin']
@@ -55,6 +55,7 @@ with st.form('edit', clear_on_submit=True):
         text='Press enter to add more',
         value=origin_record['kinds'],
         maxtags = 20)
+    results_size = st.number_input("search result size", min_value=1,max_value=10,value=origin_record['results.size'],format="%d")
     
     hcol1, hcol2 = st.columns([0.1, 0.9], gap="small")
     with hcol1:
@@ -78,9 +79,9 @@ if upload_button:
             logo_url = es_origins.upload_logo(uploaded_file, origin_id)
         if create_new or origin not in origins:
             print("adding " + origin)
-            es_origins.add_origin(origin_id, origin, logo_url, homepage_url, media_kinds)
+            es_origins.add_origin(origin_id, origin, logo_url, homepage_url, media_kinds, results_size)
         else:
             print("updating " + origin)
-            es_origins.update_origin(origin_id, origin, logo_url, homepage_url, media_kinds)
+            es_origins.update_origin(origin_id, origin, logo_url, homepage_url, media_kinds, results_size)
     else:
         st.error('incomplete form')

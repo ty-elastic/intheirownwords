@@ -252,7 +252,7 @@ def make_rrf_query(origin, search_text):
 
         return query_text, None
 
-def find_clauses(origin, search_text, method, speaker_id=None, kind=None):
+def find_clauses(origin, search_text, method, speaker_id=None, kind=None, size=1):
 
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
     with Elasticsearch([url], verify_certs=True) as es:
@@ -266,7 +266,7 @@ def find_clauses(origin, search_text, method, speaker_id=None, kind=None):
             resp = es_raw.search(index=CLAUSES_INDEX,
                                 query=query,
                                 fields=fields,
-                                size=1,
+                                size=size,
                                 rank=rank,
                                 source=False)
             #print(resp)
@@ -277,20 +277,21 @@ def find_clauses(origin, search_text, method, speaker_id=None, kind=None):
             resp = es.search(index=CLAUSES_INDEX,
                             query=query,
                             fields=fields,
-                            size=1,
+                            size=size,
                             source=False)
             
         #print(resp)
-        if len(resp['hits']['hits']) > 0:
-            if resp['hits']['hits'][0]['_score'] >= CLAUSE_CONFIDENCE_THRESHOLD:
-                body = resp['hits']['hits'][0]['fields']
+        clauses = []
+        for hit in resp['hits']['hits']:
+            if hit['_score'] >= CLAUSE_CONFIDENCE_THRESHOLD:
+                body = hit['fields']
 
                 clause = es_helpers.strip_field_arrays(body)
                 clause['date'] = dateutil.parser.isoparse(clause['date'])
             
                 voice = es_voices.lookup_speaker_by_id(body['speaker.id'][0])
                 clause.update(voice)
-                #print (clause)
+                clauses.append(clause)
 
-                return clause
-        return None
+                return clauses
+        return []
