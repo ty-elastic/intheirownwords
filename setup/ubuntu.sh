@@ -3,24 +3,27 @@
 mkdir -p ../prj
 mkdir -p ../ingest
 
+gpu="false"
 develop="false"
 uionly="false"
-while getopts d:u: flag
+while getopts d:u:g: flag
 do
     case "${flag}" in
         d) develop="true";;
         u) uionly="true";;
+        g) gpu="true";;
     esac
 done
 echo "develop=$develop"
 echo "uionly=$uionly"
+echo "gpu=$gpu"
 
 # install build essentials
 echo "installing build tooling..."
 sudo apt update
 sudo apt install -y build-essential
 
-if [ "$uionly" == "false" ]; then
+if [ "$gpu" == "true" ]; then
   if [[ $(which nvidia-smi) ]]; then
     echo "nvidia driver is installed."
   else

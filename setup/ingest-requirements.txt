@@ -2,9 +2,12 @@ git+https://github.com/m-bain/whisperx.git
 
 ffmpeg-python
 scenedetect[opencv]
-boto3
 pytesseract
 imagehash
+
+fsspec
+s3fs
+gcsfs
 
 elasticsearch
 sentence-transformers

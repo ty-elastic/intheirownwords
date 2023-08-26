@@ -2,7 +2,7 @@ import os
 import shutil
 import uuid
 import ffmpeg
-import s3
+import intheirownwords.src.storage as storage
 from datetime import datetime
 import prj
 import slides
@@ -61,7 +61,7 @@ def create_project(input, source_url, title, date, kind, origin, save_frames, pe
     }
     print(project)
 
-    project['media_url'] = s3.upload_file(project, None, media_path)
+    project['media_url'] = storage.upload_project_file(project, None, media_path)
     return project
 
 

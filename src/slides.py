@@ -1,6 +1,6 @@
 
 import os 
-import s3
+import intheirownwords.src.storage as storage
 
 from typing import Optional
 from typing import List, Tuple, Dict
@@ -67,7 +67,7 @@ def detect_slides(project):
         scene_record = {'id': i, 'frame_num': scene['frame_num'], 'frame_text': scene['frame_text']}
         if 'frame_file' in scene:
             filepath = frames_path + "/" + scene['frame_file']
-            frame_url = s3.upload_file(project, 'frames', filepath)
+            frame_url = storage.upload_project_file(project, 'frames', filepath)
             scene_record['frame_url'] = frame_url
 
         scene_record['start'] = scene['start']
