@@ -19,6 +19,7 @@ if st.session_state["authentication_status"] != True or st.session_state["userna
     st.stop()
 
 origins = es_origins.get_origins()
+origins.insert(0, ORIGIN_ALL)
 origin = st.selectbox('Collection', origins)
 
 data = {
