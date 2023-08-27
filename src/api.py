@@ -12,34 +12,34 @@ import es_clauses
 
 API_PORT=8000
 
-def search(origin, query, method, speaker_id=speaker, kind=kind, size=size):
-    clauses = es_clauses.find_clauses(origin, query, method, speaker_id=speaker, kind=kind, size=size)
+#def search(origin, query, method, speaker_id, kind, size):
+    #clauses = es_clauses.find_clauses(origin, query, method, speaker_id=speaker, kind=kind, size=size)
 
-    for clause in clauses:
-        text = "#### " + "[" + clause['title'] + "](" + clause["source_url"] + ")"
-        st.markdown(text)
-        text = clause['date'].strftime('%Y-%m-%d')
-        st.markdown(text)
+    #for clause in clauses:
+        # text = "#### " + "[" + clause['title'] + "](" + clause["source_url"] + ")"
+        # st.markdown(text)
+        # text = clause['date'].strftime('%Y-%m-%d')
+        # st.markdown(text)
 
-        col1, col2, = st.columns(2)
+        # col1, col2, = st.columns(2)
 
-        with col1:
-            answer = es_ml.ask_question(clause['text'], query)
-            context_answer = None
-            if answer is not None:
+        # with col1:
+        #     answer = es_ml.ask_question(clause['text'], query)
+        #     context_answer = None
+        #     if answer is not None:
 
-                # context_answer, i, sentences = es_ml.find_sentence_that_answers_question(clause['text'], query, answer)
-                # if context_answer is not None:
-                #     text = ui_helpers.highlight_sentence(sentences, i)
-                #     st.markdown(text)
-                # else:
-                #     escaped = ui_helpers.escape_markdown(clause['text'])
-                #     text = "### _\""
-                #     text = text + ":orange[" + escaped + "]"
-                #     text = text + "\"_"
-                #     st.markdown(text)
+        #         # context_answer, i, sentences = es_ml.find_sentence_that_answers_question(clause['text'], query, answer)
+        #         # if context_answer is not None:
+        #         #     text = ui_helpers.highlight_sentence(sentences, i)
+        #         #     st.markdown(text)
+        #         # else:
+        #         #     escaped = ui_helpers.escape_markdown(clause['text'])
+        #         #     text = "### _\""
+        #         #     text = text + ":orange[" + escaped + "]"
+        #         #     text = text + "\"_"
+        #         #     st.markdown(text)
 
-                start, stop = es_ml.find_text_that_answers_question(clause['text'], answer)
+        #         start, stop = es_ml.find_text_that_answers_question(clause['text'], answer)
 
 def ingest(upload):
     print(input)
