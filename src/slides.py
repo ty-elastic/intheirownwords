@@ -1,6 +1,6 @@
 
 import os 
-import intheirownwords.src.storage as storage
+import storage
 
 from typing import Optional
 from typing import List, Tuple, Dict

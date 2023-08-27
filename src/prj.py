@@ -2,7 +2,7 @@ import os
 import shutil
 import uuid
 import ffmpeg
-import intheirownwords.src.storage as storage
+import storage
 from datetime import datetime
 import prj
 import slides
