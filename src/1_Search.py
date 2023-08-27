@@ -55,7 +55,8 @@ else:
 
 if st.session_state["authentication_status"]:
     with st.sidebar:
-        authenticator.logout('Logout', 'main')
+        if os.path.isfile('auth/users.yaml'):
+            authenticator.logout('Logout', 'main')
 
     origins = es_clauses.get_origins()
     origin = st.selectbox('Collection', origins)

@@ -11,7 +11,7 @@ def upload_file(local_path, remote_path):
         print(response)
         return "https://" + os.getenv('AWS_S3_BUCKET') + ".s3.amazonaws.com/" + remote_path
     elif os.getenv('GCP_GCS_BUCKET') != None:
-        fs = fsspec.filesystem('gcsfs')
+        fs = fsspec.filesystem('gcs')
         response = fs.put_file(local_path, "gcs://" + os.getenv('GCP_GCS_BUCKET') + "/" + remote_path)
         print(response)
         return "https://" + os.getenv('GCP_GCS_BUCKET') + ".s3.amazonaws.com/" + remote_path
