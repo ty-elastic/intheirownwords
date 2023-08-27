@@ -1,7 +1,11 @@
 server {
     listen 80;
 
-    location /media {
+    location /origins {
+        proxy_pass ${BLOB_STORAGE_URL};
+    }
+
+    location /projects {
         proxy_pass ${BLOB_STORAGE_URL};
     }
 
