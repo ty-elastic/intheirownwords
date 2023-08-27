@@ -13,6 +13,7 @@ def upload_logo(uploaded_file, origin_id):
         f.write(uploaded_file.getbuffer())
     logo_url = storage.upload_logo(input)
     os.remove(input)
+    print(logo_url)
     return logo_url
 
 def add_origin(origin_id, origin, logo_url, homepage_url, media_kinds, results_size):

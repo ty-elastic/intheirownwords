@@ -22,10 +22,10 @@ def upload_project_file(project, remote_folder, local_path):
     if remote_folder != None:
         remote_path += remote_folder + "/"
     remote_path += file_name
-    upload_file(local_path, remote_path)
+    return upload_file(local_path, remote_path)
 
 def upload_logo(local_path):
     file_path, file_name = os.path.split(local_path)
     remote_path = ORIGIN_BUCKET + "/" 
     remote_path += file_name
-    upload_file(local_path, remote_path)
+    return upload_file(local_path, remote_path)
