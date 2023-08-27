@@ -70,6 +70,8 @@ sudo docker build -t intheirownwords-ui -f ../Dockerfile.ui ../
 
 if [ "$develop" == "true" ]; then
 
+  sudo apt install -y ffmpeg
+
   sudo add-apt-repository -y ppa:alex-p/tesseract-ocr5
   sudo apt update
   sudo apt install -y tesseract-ocr
@@ -96,8 +98,6 @@ if [ "$develop" == "true" ]; then
 
     # base dependencies for pytorch
     conda install -y pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.7 -c pytorch -c nvidia
-    # install tesseract binaries
-    #conda install -y  -c conda-forge tesseract
     # install required python libs
     pip install git+https://github.com/pyannote/pyannote-audio.git@develop
     pip install -r ingest-requirements.txt

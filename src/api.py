@@ -8,9 +8,38 @@ from typing import Tuple
 from http import HTTPStatus
 from http.server import HTTPServer
 import threading
-
+import es_clauses
 
 API_PORT=8000
+
+def search(origin, query, method, speaker_id=speaker, kind=kind, size=size):
+    clauses = es_clauses.find_clauses(origin, query, method, speaker_id=speaker, kind=kind, size=size)
+
+    for clause in clauses:
+        text = "#### " + "[" + clause['title'] + "](" + clause["source_url"] + ")"
+        st.markdown(text)
+        text = clause['date'].strftime('%Y-%m-%d')
+        st.markdown(text)
+
+        col1, col2, = st.columns(2)
+
+        with col1:
+            answer = es_ml.ask_question(clause['text'], query)
+            context_answer = None
+            if answer is not None:
+
+                # context_answer, i, sentences = es_ml.find_sentence_that_answers_question(clause['text'], query, answer)
+                # if context_answer is not None:
+                #     text = ui_helpers.highlight_sentence(sentences, i)
+                #     st.markdown(text)
+                # else:
+                #     escaped = ui_helpers.escape_markdown(clause['text'])
+                #     text = "### _\""
+                #     text = text + ":orange[" + escaped + "]"
+                #     text = text + "\"_"
+                #     st.markdown(text)
+
+                start, stop = es_ml.find_text_that_answers_question(clause['text'], answer)
 
 def ingest(upload):
     print(input)
@@ -28,10 +57,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         return json.dumps({"message": "Hello world"}).encode()
 
     def do_GET(self):
-        self.send_response(HTTPStatus.OK)
-        self.send_header("Content-Type", "application/json")
-        self.end_headers()
-        self.wfile.write(bytes(self.api_response))
+        if self.path == '/search':
+            print("hi")
+        else:
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(bytes(self.api_response))
 
     def do_POST(self):
         if self.path == '/import/youtube':

@@ -61,11 +61,11 @@ if st.session_state["authentication_status"]:
     origins = es_clauses.get_origins()
     origin = st.selectbox('Collection', origins)
     origin_rec = es_origins.get_origin(origin)
-    print(f"ORIGIN={origin}")
+    print(f"ORIGIN={origin_rec}")
 
     hcol1, hcol2 = st.columns([0.2, 0.8], gap="medium")
     with hcol1:
-        if origin_rec is not None:
+        if origin_rec is not None and 'logo_url' in origin_rec:
             st.image(origin_rec['logo_url'], use_column_width=True)
         else:
             st.image('https://images.contentstack.io/v3/assets/bltefdd0b53724fa2ce/blt601c406b0b5af740/620577381692951393fdf8d6/elastic-logo-cluster.svg', use_column_width=True)
