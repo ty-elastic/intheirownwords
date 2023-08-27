@@ -73,10 +73,11 @@ if upload_button:
 
         
         logo_url = None
-        if 'logo_url' in origin_record:
-            logo_url = origin_record['logo_url']
-        elif uploaded_file:
+        if uploaded_file:
             logo_url = es_origins.upload_logo(uploaded_file, origin_id)
+        elif 'logo_url' in origin_record:
+            logo_url = origin_record['logo_url']
+
         if create_new or origin not in origins:
             print("adding " + origin)
             es_origins.add_origin(origin_id, origin, logo_url, homepage_url, media_kinds, results_size)
