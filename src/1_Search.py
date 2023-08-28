@@ -14,6 +14,10 @@ import api
 from storage import MediaHandler
 from st_inject_api import CustomRule, init_global_tornado_hook, uninitialize_global_tornado_hook
 
+from streamlit_js_eval import get_page_location
+
+st.write(get_page_location())
+
 api.dummy()
 init_global_tornado_hook([CustomRule("/media/.*", MediaHandler, name="/media")])
 
