@@ -24,10 +24,7 @@ if 'authentication_status' not in st.session_state:
 APP_NAME = "Informative Video Search Demo"
 st.set_page_config(layout="wide", page_title=APP_NAME)
 
-PAGE_LOC = get_page_location()
-print(PAGE_LOC)
-BASE_URL = PAGE_LOC['protocol'] + "//" + PAGE_LOC['host']
-print(BASE_URL)
+BASE_URL = os.getenv('BASE_URL')
 
 SEARCH_METHODS = [es_clauses.METHOD_HYBRID, es_clauses.METHOD_RRF]
 
