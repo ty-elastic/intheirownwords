@@ -13,11 +13,7 @@ import es_origins
 import api
 from storage import MediaHandler
 from st_inject_api import CustomRule, init_global_tornado_hook, uninitialize_global_tornado_hook
-
 from streamlit_js_eval import get_page_location
-PAGE_LOC = get_page_location()
-BASE_URL = PAGE_LOC['protocol'] + "//" + PAGE_LOC['host']
-print(BASE_URL)
 
 api.dummy()
 init_global_tornado_hook([CustomRule("/media/.*", MediaHandler, name="/media")])
@@ -27,6 +23,10 @@ if 'authentication_status' not in st.session_state:
 
 APP_NAME = "Informative Video Search Demo"
 st.set_page_config(layout="wide", page_title=APP_NAME)
+
+PAGE_LOC = get_page_location()
+BASE_URL = PAGE_LOC['protocol'] + "//" + PAGE_LOC['host']
+print(BASE_URL)
 
 SEARCH_METHODS = [es_clauses.METHOD_HYBRID, es_clauses.METHOD_RRF]
 
