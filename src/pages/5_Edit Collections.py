@@ -11,6 +11,9 @@ st.set_page_config(layout="wide", page_title=APP_NAME)
 st.image('https://images.contentstack.io/v3/assets/bltefdd0b53724fa2ce/blt601c406b0b5af740/620577381692951393fdf8d6/elastic-logo-cluster.svg', width=100)
 st.title(APP_NAME)
 
+BASE_URL = os.getenv('BASE_URL')
+print(BASE_URL)
+
 if 'authentication_status' not in st.session_state:
     st.session_state['authentication_status'] = False
 if st.session_state["authentication_status"] != True or st.session_state["username"] != 'elastic':
@@ -60,7 +63,8 @@ with st.form('edit', clear_on_submit=True):
     hcol1, hcol2 = st.columns([0.1, 0.9], gap="small")
     with hcol1:
         if 'logo_url' in origin_record:
-            header_logo = st.image(origin_record['logo_url'], use_column_width=True)
+            img = BASE_URL + origin_record['logo_url']
+            header_logo = st.image(img, use_column_width=True)
     with hcol2:
         uploaded_file = st.file_uploader("Logo", type=["svg","jpg","png"])
 
