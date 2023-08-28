@@ -25,6 +25,7 @@ APP_NAME = "Informative Video Search Demo"
 st.set_page_config(layout="wide", page_title=APP_NAME)
 
 PAGE_LOC = get_page_location()
+print(PAGE_LOC)
 BASE_URL = PAGE_LOC['protocol'] + "//" + PAGE_LOC['host']
 print(BASE_URL)
 
