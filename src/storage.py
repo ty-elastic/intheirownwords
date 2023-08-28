@@ -40,6 +40,7 @@ def get_file(remote_path):
         return fs.open("s3://" + os.getenv('AWS_S3_BUCKET') + remote_path)
     elif os.getenv('GCP_GCS_BUCKET') != None:
         fs = fsspec.filesystem('gcs')
+        print("gcs://" + os.getenv('GCP_GCS_BUCKET') + remote_path)
         return fs.open("gcs://" + os.getenv('GCP_GCS_BUCKET') + remote_path)
 
 class MediaHandler(RequestHandler):
