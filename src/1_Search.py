@@ -16,6 +16,7 @@ from st_inject_api import CustomRule, init_global_tornado_hook, uninitialize_glo
 
 from streamlit_js_eval import get_page_location
 BASE_URL = get_page_location()['protocol'] + "//" + get_page_location()['host']
+print(BASE_URL)
 
 api.dummy()
 init_global_tornado_hook([CustomRule("/media/.*", MediaHandler, name="/media")])
@@ -62,7 +63,7 @@ if st.session_state["authentication_status"]:
     hcol1, hcol2 = st.columns([0.2, 0.8], gap="medium")
     with hcol1:
         if origin_rec is not None and 'logo_url' in origin_rec:
-            st.image(BASE_URL + origin_rec['logo_url'], use_column_width=True)
+            st.image(BASE_URL + origin_rec['logo_url'], use_column_width=True, key="logo")
         else:
             st.image('https://images.contentstack.io/v3/assets/bltefdd0b53724fa2ce/blt601c406b0b5af740/620577381692951393fdf8d6/elastic-logo-cluster.svg', use_column_width=True)
     with hcol2:
