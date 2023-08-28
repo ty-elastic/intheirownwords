@@ -22,7 +22,7 @@ def upload_file(local_path, remote_path):
 def upload_project_file(project, remote_folder, local_path):
     file_path, file_name = os.path.split(local_path)
     remote_path = "/" + PROJECT_BUCKET + "/" 
-    remote_path = project['id'] + "/" 
+    remote_path = remote_path + project['id'] + "/" 
     if remote_folder != None:
         remote_path += remote_folder + "/"
     remote_path += file_name
