@@ -45,7 +45,7 @@ def get_file(remote_path):
 
 class MediaHandler(RequestHandler):
     def get(self):
-        print(self.request.uri)
+        print(f"URL={self.request.uri}")
         content_type, _ = guess_type(self.request.uri)
         self.add_header('Content-Type', content_type)
         print(content_type)
