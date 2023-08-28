@@ -11,24 +11,17 @@ import pandas as pd
 import ui_helpers
 import es_origins
 import api
+from storage import MediaHandler
+from st_inject_api import CustomRule, init_global_tornado_hook, uninitialize_global_tornado_hook
 
-api.dummy() 
+api.dummy()
+init_global_tornado_hook([CustomRule("/media/.*", MediaHandler, name="/media")])
 
 if 'authentication_status' not in st.session_state:
     st.session_state['authentication_status'] = False
 
 APP_NAME = "Informative Video Search Demo"
 st.set_page_config(layout="wide", page_title=APP_NAME)
-
-# hcol1, hcol2 = st.columns([0.2, 0.8], gap="medium")
-# with hcol1:
-#     header_logo = st.empty()
-# with hcol2:
-#     header_title = st.empty()
-
-METHOD_RRF="RRF"
-METHOD_HYBRID="Hybrid"
-MAX_RESULTS = 2
 
 SEARCH_METHODS = [es_clauses.METHOD_HYBRID, es_clauses.METHOD_RRF]
 
