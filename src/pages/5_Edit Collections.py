@@ -3,6 +3,7 @@ import es_clauses
 import es_origins
 from streamlit_tags import st_tags, st_tags_sidebar
 from hashlib import sha512
+import os
 
 KINDS = ['Webinar', 'Tutorial', 'Meeting']
 
