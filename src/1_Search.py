@@ -16,7 +16,7 @@ from st_inject_api import CustomRule, init_global_tornado_hook, uninitialize_glo
 from streamlit_js_eval import get_page_location
 
 api.dummy()
-init_global_tornado_hook([CustomRule("/media/.*", MediaHandler, name="/media")])
+init_global_tornado_hook([CustomRule("/origins/.*", MediaHandler, name="/origins"),CustomRule("/projects/.*", MediaHandler, name="/projects")])
 
 if 'authentication_status' not in st.session_state:
     st.session_state['authentication_status'] = False
