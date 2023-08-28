@@ -49,7 +49,7 @@ class MediaHandler(RequestHandler):
         content_type, _ = guess_type(self.request.uri)
         self.add_header('Content-Type', content_type)
         print(content_type)
-        path = self.request.uri[(len("/media")):]
+        path = self.request.uri
         print(path)
         with get_file(path) as source_file:
             self.write(source_file.read())
