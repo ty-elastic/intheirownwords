@@ -15,6 +15,7 @@ from storage import MediaHandler
 from st_inject_api import CustomRule, init_global_tornado_hook, uninitialize_global_tornado_hook
 from streamlit_js_eval import get_page_location
 from api import ImportHandler, SearchHandler
+import dateutil
 
 init_global_tornado_hook([CustomRule("/origins/.*", MediaHandler, name="/origins"),
                           CustomRule("/projects/.*", MediaHandler, name="/projects"),
@@ -119,7 +120,8 @@ if st.session_state["authentication_status"]:
                 for clause in clauses:
                     text = "#### " + "[" + clause['title'] + "](" + clause["source_url"] + ")"
                     st.markdown(text)
-                    text = clause['date'].strftime('%Y-%m-%d')
+                    date = dateutil.parser.isoparse(clause['date'])
+                    text = date.strftime('%Y-%m-%d')
                     st.markdown(text)
 
                     col1, col2, = st.columns(2)
