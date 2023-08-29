@@ -98,7 +98,7 @@ def init_global_tornado_hook(rule_list: Iterable[Union[CustomRule, Rule]]):
 
             handler = custom_router.find_handler(request, **kwargs)
             if handler is not None:
-                return self.app.get_handler_delegate(request, handler, path_args=[request.path])
+                return self.get_handler_delegate(request, handler, path_args=[request.path])
 
             # Forward other requests to the original handler
             return original_find_handler(self, request, **kwargs)
