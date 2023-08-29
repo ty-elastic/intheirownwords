@@ -13,7 +13,6 @@ import es_origins
 import api
 from storage import MediaHandler
 from st_inject_api import CustomRule, init_global_tornado_hook, uninitialize_global_tornado_hook
-from streamlit_js_eval import get_page_location
 from api import ImportHandler, SearchHandler
 import dateutil
 
