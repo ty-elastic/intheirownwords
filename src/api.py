@@ -27,8 +27,11 @@ class SearchHandler(RequestHandler):
         origin = self.get_argument('origin')
         print(f"TEST {origin}")
         query = self.get_argument('query')
+        print(f"q {query}")
         size = self.get_argument('size')
+        print(f"s {size}")
         kind = self.get_argument('kind')
+        print(f"k {kind}")
         
         
         self.set_header("Content-Type", 'application/json')
