@@ -46,7 +46,5 @@ RUN pip install -r requirements.txt
 WORKDIR /home/intheirownwords
 
 COPY src/*.py ./
-COPY src/pages/*.py pages/
-COPY doc/ui.md doc/ui.md
 
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "intheirownwords", "python", "main.py"]

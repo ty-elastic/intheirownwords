@@ -28,7 +28,14 @@ RUN pip install -r requirements.txt
 
 COPY src/es_*.py .
 COPY src/ui_helpers.py .
-COPY src/search.py .
+
+COPY src/api_import_client.py .
+COPY src/api_search_server.py .
+
+COPY src/st_inject_api.py .
+COPY src/1_Search.py .
+COPY src/pages/*.py pages/
+
 COPY doc/ui.md doc/ui.md
 
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "intheirownwords", "streamlit", "run", "1_Search.py"]

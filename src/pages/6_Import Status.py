@@ -1,7 +1,7 @@
 import streamlit as st
 from io import StringIO
 import os
-import job
+import api_import_client
 import pandas as pd
 import es_origins
 
@@ -29,7 +29,7 @@ data = {
     "queued": [],
     "duration": []
 }
-jobs = job.get_status()
+jobs = api_import_client.get_status()
 for j in jobs:
     if origin is ORIGIN_ALL or j["origin"] == origin:
         data['origin'].append(j['origin'])

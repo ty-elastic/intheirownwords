@@ -10,7 +10,7 @@ import os
 from pytube import YouTube
 
 INGEST_DIR="ingest"
-PERSIST_DAYS_DEFAULT=30
+PERSIST_DAYS_DEFAULT=60
 YT_RETRIES=2
 
 q = queue.Queue()
@@ -18,7 +18,7 @@ jobs = []
 
 def enqueue(source_url, title, date, kind, origin, save_frames, persist_days=PERSIST_DAYS_DEFAULT, youtube_url=None, input=None):
     project = {
-        "id": uuid.uuid4(),
+        "id": str(uuid.uuid4()),
         "input": input,
         "title": title,
         "date": date,
@@ -64,7 +64,7 @@ def process_loop():
             prj.process(project['input'], 
                         project['source_url'], 
                         project['title'], 
-                        project['date'].strftime('%m/%d/%y'), 
+                        project['date'], 
                         project['kind'], 
                         project['origin'],
                         project['save_frames'],
@@ -80,12 +80,14 @@ def process_loop():
         
 def start():
     print('start q')
-    t = threading.Thread(target=process_loop)
-    t.daemon = True
-    t.start()
+    # t = threading.Thread(target=process_loop)
+    # t.daemon = True
+    # t.start()
+    process_loop()
 
 def get_status():
     return jobs
 
 # always start queue (even if it isn't used)
-start()
+#start()
+

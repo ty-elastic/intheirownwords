@@ -1,8 +1,7 @@
 import streamlit as st
 from io import StringIO
 import os
-import job
-from pytube import YouTube
+import api_import_client
 import uuid
 import es_origins
 import es_clauses
@@ -56,7 +55,7 @@ with st.form("upload", clear_on_submit=True):
 
 if youtube_button:
     if validate_input(source_url, title, kind, origin, youtube_link, uploaded_file):
-        job.enqueue(source_url, title, date,
+        api_import_client.enqueue(source_url, title, date,
                     kind, origin, save_frames, youtube_url=youtube_link)
     else:
         st.error('incomplete form')
@@ -68,7 +67,7 @@ if upload_button:
         with open(input, "wb") as f:
             f.write(uploaded_file.getbuffer())
 
-        job.enqueue(source_url, title, date,
+        api_import_client.enqueue(source_url, title, date,
                     kind, origin, save_frames, input=input)
     else:
         st.error('incomplete form')

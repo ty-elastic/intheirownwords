@@ -49,7 +49,7 @@ def create_project(input, source_url, title, date, kind, origin, save_frames, pe
         "id": project_id,
         "input": media_path,
         "title": title,
-        "date": datetime.strptime(date, '%m/%d/%y'),
+        "date": date,
         "path": prj_path,
         "kind": kind,
         "origin": origin,

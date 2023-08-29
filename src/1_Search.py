@@ -1,7 +1,6 @@
 import streamlit as st
 import streamlit_authenticator as stauth
 import es_clauses
-import es_ml
 import time
 import os
 import yaml
@@ -10,16 +9,14 @@ import es_voices
 import pandas as pd
 import ui_helpers
 import es_origins
-import api
 from storage import MediaHandler
 from st_inject_api import CustomRule, init_global_tornado_hook, uninitialize_global_tornado_hook
-from api import ImportHandler, SearchHandler, StatusHandler
+from api_search_server import SearchHandler, StatusHandler, MediaHandler
 import dateutil
 
 init_global_tornado_hook([CustomRule("/origins/.*", MediaHandler, name="/origins"),
                           CustomRule("/projects/.*", MediaHandler, name="/projects"),
                           CustomRule("/search", SearchHandler, name="/search"), 
-                          CustomRule("/import", ImportHandler, name="/import"),
                           CustomRule("/status", StatusHandler, name="/status")])
 
 if 'authentication_status' not in st.session_state:
