@@ -37,3 +37,7 @@ class SearchHandler(RequestHandler):
         print(res)
         r = json.dumps(res)
         self.write(r)
+
+class StatusHandler(RequestHandler):
+    def get(self):
+        self.write("OK")
