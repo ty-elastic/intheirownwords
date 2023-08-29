@@ -126,7 +126,7 @@ if st.session_state["authentication_status"]:
 
                     with col1:
 
-                        text = ui_helpers.highlight_passage(clause['text'], clause['answer_start'], clause['answer_stop'])
+                        text = ui_helpers.highlight_passage(clause['text'], clause['answer.start'], clause['answer.stop'])
                         st.markdown(text)
 
                         if 'speaker.name' in clause:

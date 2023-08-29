@@ -281,14 +281,13 @@ def find_clauses(origin, search_text, method, speaker_id=None, kind=None, size=1
                             size=size,
                             source=False)
             
-        #print(resp)
         clauses = []
         for hit in resp['hits']['hits']:
             if hit['_score'] >= CLAUSE_CONFIDENCE_THRESHOLD:
                 body = hit['fields']
 
                 clause = es_helpers.strip_field_arrays(body)
-                clause['date'] = dateutil.parser.isoparse(clause['date'])
+                #clause['source.date'] = dateutil.parser.isoparse(clause['source.date'])
             
                 voice = es_voices.lookup_speaker_by_id(body['speaker.id'][0])
                 clause.update(voice)
@@ -296,12 +295,12 @@ def find_clauses(origin, search_text, method, speaker_id=None, kind=None, size=1
                 answer = es_ml.ask_question(clause['text'], search_text)
                 if answer is not None:
                     start, stop = es_ml.find_text_that_answers_question(clause['text'], answer)
-                    clause['answer'] = answer
-                    clause['answer_start'] = start
-                    clause['answer_stop'] = stop
+                    clause['answer.text'] = answer
+                    clause['answer.start'] = start
+                    clause['answer.stop'] = stop
                 else:
-                    clause['answer_start'] = 0
-                    clause['answer_stop'] = len(clause['text'])-1
+                    clause['answer.start'] = 0
+                    clause['answer.stop'] = 0
 
                 clauses.append(clause)
 
