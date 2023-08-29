@@ -29,7 +29,7 @@ df = pd.DataFrame(projects)
 st.dataframe(
     df,
     column_config={
-        "media_url": st.column_config.LinkColumn("Media URL"),
+        "media.url": st.column_config.LinkColumn("Media URL"),
         "source_url": st.column_config.LinkColumn("Source URL"),
     },
     hide_index=True,

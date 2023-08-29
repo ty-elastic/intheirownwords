@@ -142,8 +142,8 @@ if st.session_state["authentication_status"]:
                         with placeholder:
                             with st.spinner('loading...'):
                                 time.sleep(0.1)
-                            media_url = BASE_URL + clause['media_url']
-                            placeholder.video(media_url, format="video/mp4", start_time=int(clause['start']))
+                            media_url = BASE_URL + clause['media.url']
+                            placeholder.video(media_url, format="video/mp4", start_time=int(clause['media.start']))
 
                     st.write("---")
 

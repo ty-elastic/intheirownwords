@@ -42,7 +42,7 @@ def get_project(project_id):
     with Elasticsearch([url], verify_certs=True) as es:
         query = { "term": { "project_id": project_id } }
 
-        fields = ["kind", "origin", "date", "title", "media_url", "source_url"]
+        fields = ["kind", "origin", "date", "title", "media.url", "source_url"]
         resp = es.search(index=CLAUSES_INDEX,
                             query=query,
                             fields=fields,
@@ -66,7 +66,7 @@ def get_projects(origin):
         }
         query = { "term": { "origin": origin } }
 
-        fields = ["kind", "origin", "date", "title", "media_url", "source_url"]
+        fields = ["kind", "origin", "date", "title", "media.url", "source_url"]
         resp = es.search(index=CLAUSES_INDEX,
                             aggs=aggs,
                             query=query,
@@ -260,7 +260,7 @@ def find_clauses(origin, search_text, method, speaker_id=None, kind=None, size=1
 
         
 
-        fields = ["kind", "origin", "date", "title", "start", "end", "text", "media_url", "source_url", "scene.frame_url", "speaker.id", "scene.frame_text"]
+        fields = ["kind", "origin", "date", "title", "media.start", "media.end", "text", "media.url", "source_url", "scene.frame_url", "speaker.id", "scene.frame_text"]
 
         if method == METHOD_RRF:
             query, rank = make_rrf_query(origin, search_text)

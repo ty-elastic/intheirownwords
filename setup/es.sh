@@ -75,9 +75,7 @@ curl -XPUT "$ELASTICSEARCH_URL/clauses" -H "kbn-xsrf: reporting" -H "Content-Typ
     "project_id": {
       "type": "keyword"
     }, 
-    "media_url": {
-      "type": "keyword"
-    },
+
     "title": {
       "type": "text"
     },
@@ -121,10 +119,13 @@ curl -XPUT "$ELASTICSEARCH_URL/clauses" -H "kbn-xsrf: reporting" -H "Content-Typ
       "type": "keyword"
     },
     
-    "start": {
+    "media.url": {
+      "type": "keyword"
+    },
+    "media.start": {
       "type": "float"
     },
-    "end": {
+    "media.end": {
       "type": "float"
     },
     

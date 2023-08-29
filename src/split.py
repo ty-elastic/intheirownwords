@@ -22,7 +22,7 @@ def find_scenes(project, voice_start, voice_end):
     return scenes
 
 def create_clause(chunk, segment, project):
-    clause = {'speaker.id':chunk['speaker_id'], 'start': segment['start'], 'end': segment['end']}
+    clause = {'speaker.id':chunk['speaker_id'], 'media.start': segment['start'], 'media.end': segment['end']}
 
     clause['scene.frame_num'] = []
     clause['scene.start'] = []
@@ -45,7 +45,7 @@ def create_clause(chunk, segment, project):
                 clause['scene.frame_url'].append(scene['frame_url'])
 
     clause['project_id'] = project['id']
-    clause['media_url'] = project['media_url']
+    clause['media.url'] = project['media_url']
     clause['title'] = project['title']
     clause['date'] = project['date'].strftime('%Y-%m-%d')
     clause['date_uploaded'] = project['date_uploaded'].strftime('%Y-%m-%d')
