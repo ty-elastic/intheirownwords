@@ -2,9 +2,6 @@ import logging
 import threading
 from typing import Any, Dict, Iterable, Optional, Union
 from tornado.routing import Rule, Matcher
-from typing import (
-    cast,
-)
 
 _global_tornado_hook = None
 _global_hook_lock = threading.RLock()
@@ -58,7 +55,7 @@ def init_global_tornado_hook(rule_list: Iterable[Union[CustomRule, Rule]]):
 
     import tornado.web
     from tornado import httputil
-    from tornado.routing import Rule, PathMatches, RuleRouter
+    from tornado.routing import Rule, PathMatches
     from tornado.web import Application, RequestHandler
     global _global_tornado_hook
 
@@ -77,8 +74,6 @@ def init_global_tornado_hook(rule_list: Iterable[Union[CustomRule, Rule]]):
     hooked_applications = set()
     original_find_handler = tornado.web.Application.find_handler
 
-    custom_router = RuleRouter(injected_rule_list)
-
     class CustomApplication:
         # Note that self here is not CustomApplication but Application
         def find_handler(
@@ -92,13 +87,9 @@ def init_global_tornado_hook(rule_list: Iterable[Union[CustomRule, Rule]]):
                 hooked_applications.add(self)
 
                 # Hook the application
-                # for rule in reversed(injected_rule_list):
-                #     # Insert the rule at the beginning of the list
-                #     self.default_router.rules.insert(0, rule)
-
-            handler = custom_router.find_handler(request, **kwargs)
-            if handler is not None:
-                return tornado.web.Application.get_handler_delegate(tornado.web.Application, request, handler, path_args=[request.path])
+                for rule in reversed(injected_rule_list):
+                    # Insert the rule at the beginning of the list
+                    self.default_router.rules.insert(0, rule)
 
             # Forward other requests to the original handler
             return original_find_handler(self, request, **kwargs)

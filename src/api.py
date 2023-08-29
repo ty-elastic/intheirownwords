@@ -9,6 +9,17 @@ from http import HTTPStatus
 from http.server import HTTPServer
 import threading
 import es_clauses
+from tornado.web import RequestHandler
+import tornado
+
+class ImportHandler(RequestHandler):
+    def get(self):
+        print(f"URL={self.request.uri}")
+        data = tornado.escape.json_decode(self.request.body)
+        print ("in post method")
+        print(data)
+        ingest(data)
+        return
 
 API_PORT=8000
 
