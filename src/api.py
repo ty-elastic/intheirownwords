@@ -23,11 +23,13 @@ class ImportHandler(RequestHandler):
 
 class SearchHandler(RequestHandler):
     def get(self):
+        print("HERE!!!")
         origin = self.get_argument('origin')
         query = self.get_argument('query')
         size = int(self.get_argument('size'))
         kind = self.get_argument('kind')
-
+        print(origin, query, size, kind)
+        
         self.set_header("Content-Type", 'application/json')
         res = es_clauses.find_clauses(origin, query, es_clauses.METHOD_HYBRID, speaker_id=None, kind=kind, size=size)
         r = json.dumps(res)
