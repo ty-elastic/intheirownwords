@@ -16,7 +16,7 @@ ELSER_TOKEN_LIMIT = 512
 
 SPACE_SIZE = 5
 MAX_P_SIZE = 5
-ORDER = 1
+ORDER = 2
 
 # inspired by https://github.com/poloniki/quint
 
