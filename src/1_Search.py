@@ -14,11 +14,11 @@ import api
 from storage import MediaHandler
 from st_inject_api import CustomRule, init_global_tornado_hook, uninitialize_global_tornado_hook
 from streamlit_js_eval import get_page_location
-from api import ImportHandler
+from api import ImportHandler, SearchHandler
 
-api.dummy()
 init_global_tornado_hook([CustomRule("/origins/.*", MediaHandler, name="/origins"),
                           CustomRule("/projects/.*", MediaHandler, name="/projects"),
+                          CustomRule("/search", SearchHandler, name="/search"), 
                           CustomRule("/import", ImportHandler, name="/import")])
 
 if 'authentication_status' not in st.session_state:
@@ -125,24 +125,9 @@ if st.session_state["authentication_status"]:
                     col1, col2, = st.columns(2)
 
                     with col1:
-                        answer = es_ml.ask_question(clause['text'], query)
-                        context_answer = None
-                        if answer is not None:
 
-                            # context_answer, i, sentences = es_ml.find_sentence_that_answers_question(clause['text'], query, answer)
-                            # if context_answer is not None:
-                            #     text = ui_helpers.highlight_sentence(sentences, i)
-                            #     st.markdown(text)
-                            # else:
-                            #     escaped = ui_helpers.escape_markdown(clause['text'])
-                            #     text = "### _\""
-                            #     text = text + ":orange[" + escaped + "]"
-                            #     text = text + "\"_"
-                            #     st.markdown(text)
-
-                            start, stop = es_ml.find_text_that_answers_question(clause['text'], answer)
-                            text = ui_helpers.highlight_passage(clause['text'], start, stop)
-                            st.markdown(text)
+                        text = ui_helpers.highlight_passage(clause['text'], clause['answer_start'], clause['answer_stop'])
+                        st.markdown(text)
 
                         if 'speaker.name' in clause:
                             title = "**" + clause['speaker.name'] + "**, " + clause['speaker.title'] + ", " + clause['speaker.company']

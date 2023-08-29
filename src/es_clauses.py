@@ -7,6 +7,7 @@ import es_voices
 import es_helpers
 import dateutil.parser
 import yake
+import es_ml
 
 METHOD_RRF="RRF"
 METHOD_HYBRID="Hybrid"
@@ -291,7 +292,17 @@ def find_clauses(origin, search_text, method, speaker_id=None, kind=None, size=1
             
                 voice = es_voices.lookup_speaker_by_id(body['speaker.id'][0])
                 clause.update(voice)
+
+                answer = es_ml.ask_question(clause['text'], search_text)
+                if answer is not None:
+                    start, stop = es_ml.find_text_that_answers_question(clause['text'], answer)
+                    clause['answer'] = answer
+                    clause['answer_start'] = start
+                    clause['answer_stop'] = stop
+                else:
+                    clause['answer_start'] = 0
+                    clause['answer_stop'] = len(clause['text'])-1
+
                 clauses.append(clause)
 
-                return clauses
-        return []
+        return clauses
