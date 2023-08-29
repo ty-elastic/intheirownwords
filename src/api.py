@@ -23,7 +23,7 @@ class ImportHandler(RequestHandler):
 
 class SearchHandler(RequestHandler):
     def get(self):
-        origin = self.get_argument('source.origin')
+        origin = self.get_argument('origin')
         query = self.get_argument('query')
         size=None
         if 'size' in self.request.arguments:
