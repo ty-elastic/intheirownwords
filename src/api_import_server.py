@@ -37,16 +37,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == '/import/status':
-            print('hello')
             status = job.get_status()
             for j in status:
-                print(f"date={j['date']}")
                 j['date'] = j['date'].strftime('%Y-%m-%d')
                 j['queued'] = j['queued'].isoformat()
                 j['duration'] = j['duration']
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
+            print(status)
             r = json.dumps(status).encode()
             self.wfile.write(bytes(r))
         else:
