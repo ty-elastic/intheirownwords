@@ -58,7 +58,7 @@ def create_project(input, source_url, title, date, kind, origin, save_frames, pe
         "date_uploaded": datetime.now(),
         "scenes": []
     }
-    print(project)
+    print(f"creating={project}")
 
     project['media_url'] = storage.upload_project_file(project, None, media_path)
     return project
@@ -84,6 +84,6 @@ def process(input, source_url, title, date, kind, origin, save_frames, persist_d
     es_clauses.add_clauses(project)
 
     end_time = time.time()
-    print (end_time - start_time)
+    print (f"duration={end_time - start_time}")
     
     delete_project(project)

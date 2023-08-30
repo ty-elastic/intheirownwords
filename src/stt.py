@@ -22,7 +22,7 @@ def speech_to_text(project):
     gc.collect()
     torch.cuda.empty_cache()
     del model
-    print("after transcribe")
+    #print("after transcribe")
 
     # 2. Align whisper output
     model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=DEVICE)
@@ -34,7 +34,7 @@ def speech_to_text(project):
     gc.collect()
     torch.cuda.empty_cache()
     del model_a
-    print("after align")
+    #print("after align")
 
     # 3. Assign speaker labels
     diarize_model = stt_diarize.DiarizationPipeline(use_auth_token=os.getenv('HF_TOKEN'), device=DEVICE)
@@ -47,7 +47,7 @@ def speech_to_text(project):
     gc.collect()
     torch.cuda.empty_cache()
     del diarize_model
-    print("after diarize_model")
+    #print("after diarize_model")
 
     speakers = {}
     for i, embedding in enumerate(embeddings):

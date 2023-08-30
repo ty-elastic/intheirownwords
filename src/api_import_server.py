@@ -11,7 +11,7 @@ import threading
 API_PORT=8502
 
 def ingest(upload):
-    print(input)
+    #print(input)
     local_path = None
     youtube_url = None
     if 'local_path' in upload:
@@ -21,10 +21,10 @@ def ingest(upload):
     persist_days = None
     if 'persist_days' in upload:
         persist_days =upload['persist_days']
-    print(f"upload['date']={upload['date']}")
+    #print(f"upload['date']={upload['date']}")
     job.enqueue(upload['source_url'], upload['title'], datetime.strptime(upload['date'], '%Y-%m-%d'),
                 upload['kind'], upload['origin'], upload['save_frames'], persist_days=persist_days, youtube_url=youtube_url, input=local_path)
-    print("done")
+    #print("done")
 
 class Handler(http.server.SimpleHTTPRequestHandler):
 
@@ -45,7 +45,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            print(status)
+            #print(status)
             r = json.dumps(status).encode()
             self.wfile.write(bytes(r))
         else:
@@ -59,10 +59,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            print ("in post method")
+            #print ("in post method")
             self.data_string = self.rfile.read(int(self.headers['Content-Length']))
             data = json.loads(self.data_string)
-            print(data)
+            #print(data)
             ingest(data)
             return
 
@@ -70,7 +70,7 @@ def process_loop():
     # Create an object of the above class
     my_server = HTTPServer(('', API_PORT), Handler)
     # Star the server
-    print(f"Server started at {API_PORT}")
+    #print(f"Server started at {API_PORT}")
     my_server.serve_forever()
 
 def start():
