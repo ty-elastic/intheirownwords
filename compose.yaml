@@ -1,0 +1,31 @@
+services:
+  ingest:
+    build:
+      dockerfile: Dockerfile.ingest
+    ports:
+      - "8502:8502"
+    volumes:
+      - $PWD/auth:/home/intheirownwords/auth
+      - $PWD/prj:/home/intheirownwords/prj
+      - $PWD/ingest:/home/intheirownwords/ingest
+      - /usr/local/cuda:/usr/local/cuda
+    env_file:
+      - env.vars
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+  ui:
+    build:
+      dockerfile: Dockerfile.ui
+    ports:
+      - "8501:8501"
+    volumes:
+      - $PWD/auth:/home/intheirownwords/auth
+      - $PWD/prj:/home/intheirownwords/prj
+      - $PWD/ingest:/home/intheirownwords/ingest
+    env_file:
+      - env.vars
