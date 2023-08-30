@@ -36,7 +36,7 @@ for j in jobs:
         data['title'].append(j['title'])
         data['status'].append(j['status'])
         data['queued'].append(j['queued'])
-        data['duration'].append(str(j['duration']))
+        data['duration'].append(j['duration'])
 
 df = pd.DataFrame(data)
 st.table(df)
