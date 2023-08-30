@@ -87,7 +87,7 @@ def start():
     process_loop()
 
 def get_status():
-    return copy.deepcopy(jobs)
+    return copy.copy(jobs)
 
 # always start queue (even if it isn't used)
 #start()
