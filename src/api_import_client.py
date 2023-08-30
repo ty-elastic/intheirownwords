@@ -16,7 +16,7 @@ def enqueue(source_url, title, date, kind, origin, save_frames, persist_days=Non
     u['youtube_url'] = youtube_url
     u['local_path'] = local_path
 
-    response = requests.get(f"http://ingest:{API_PORT}/import", json=u)
+    response = requests.post(f"http://ingest:{API_PORT}/import", json=u)
 
 
 def get_status():
