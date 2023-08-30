@@ -47,4 +47,4 @@ WORKDIR /home/intheirownwords
 
 COPY src/*.py ./
 
-ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "intheirownwords", "python", "main.py"]
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "intheirownwords", "python", "-u", "main.py"]
