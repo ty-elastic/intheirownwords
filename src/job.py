@@ -8,7 +8,8 @@ import shutil
 import traceback
 import os 
 from pytube import YouTube
-import copy
+import gc 
+import torch
 
 INGEST_DIR="ingest"
 PERSIST_DAYS_DEFAULT=60
@@ -78,6 +79,9 @@ def process_loop():
         if project['input'] is not None and os.path.exists(project['input']):
             os.remove(project['input'])
         q.task_done()
+        gc.collect()
+        torch.cuda.empty_cache()
+
         
 def start():
     print('start q')

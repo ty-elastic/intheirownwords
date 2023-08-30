@@ -303,5 +303,5 @@ def find_clauses(origin, search_text, method, speaker_id=None, kind=None, size=1
                     clause['answer.stop'] = 0
 
                 clauses.append(clause)
-
+        print(clauses)
         return clauses
