@@ -74,7 +74,7 @@ def process_loop():
         except Exception as inst:
             job['status'] = 'error'
             traceback.print_exc()
-        job['duration'] = (datetime.now() - started).total_seconds
+        job['duration'] = (datetime.now() - started).total_seconds()
         if project['input'] is not None and os.path.exists(project['input']):
             os.remove(project['input'])
         q.task_done()
