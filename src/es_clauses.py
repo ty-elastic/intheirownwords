@@ -302,6 +302,7 @@ def find_clauses(origin, search_text, method, speaker_id=None, kind=None, size=1
                     clause['answer.start'] = 0
                     clause['answer.stop'] = 0
 
+                clause['confidence'] = hit['_score']
                 clauses.append(clause)
         print(clauses)
         return clauses
