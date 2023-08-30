@@ -41,7 +41,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             for j in status:
                 j['date'] = j['date'].strftime('%Y-%m-%d')
                 j['queued'] = j['queued'].isoformat()
-                j['duration'] = j['duration'].total_seconds()
+                j['duration'] = j['duration']
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
