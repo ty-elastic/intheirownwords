@@ -1,10 +1,9 @@
-import job
 import json
 import requests
 
 API_PORT=8502
 
-def enqueue(source_url, title, date, kind, origin, save_frames, persist_days=job.PERSIST_DAYS_DEFAULT, youtube_url=None, local_path=None):
+def enqueue(source_url, title, date, kind, origin, save_frames, persist_days=None, youtube_url=None, local_path=None):
     u = {}
     u['youtube_url'] = youtube_url
     u['source_url'] = source_url

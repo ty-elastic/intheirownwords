@@ -1,7 +1,4 @@
 import streamlit as st
-from io import StringIO
-import os
-import job
 import pandas as pd
 import es_clauses
 

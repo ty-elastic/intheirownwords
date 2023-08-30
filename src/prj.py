@@ -4,7 +4,6 @@ import uuid
 import ffmpeg
 import storage
 from datetime import datetime
-import prj
 import slides
 import stt
 import split

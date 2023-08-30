@@ -2,13 +2,13 @@ from elasticsearch import Elasticsearch, helpers
 import os
 import es_helpers
 import storage
-import job
 
 ORIGINS_INDEX="origins"
+INGEST_DIR="ingest"
 
 def upload_logo(uploaded_file, origin_id):
     split_tup = os.path.splitext(uploaded_file.name)
-    input = os.path.join(job.INGEST_DIR, origin_id + split_tup[1])
+    input = os.path.join(INGEST_DIR, origin_id + split_tup[1])
     with open(input, "wb") as f:
         f.write(uploaded_file.getbuffer())
     logo_url = storage.upload_logo(input)
