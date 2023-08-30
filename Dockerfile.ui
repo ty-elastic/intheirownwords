@@ -29,6 +29,7 @@ RUN pip install -r requirements.txt
 COPY src/es_*.py ./
 COPY src/ui_helpers.py .
 COPY src/storage.py .
+COPY src/job.py .
 
 COPY src/api_import_client.py .
 COPY src/api_search_server.py .
