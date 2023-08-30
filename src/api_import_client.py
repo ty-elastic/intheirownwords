@@ -21,6 +21,6 @@ def enqueue(source_url, title, date, kind, origin, save_frames, persist_days=Non
 
 def get_status():
     response = requests.get(f"http://ingest:{API_PORT}/import/status")
-    data = json.loads(response)
+    data = response.json()
     print(f"status={data}")
     return data
