@@ -21,6 +21,7 @@ def ingest(upload):
     persist_days = None
     if 'persist_days' in upload:
         persist_days =upload['persist_days']
+    print(f"upload['date']={upload['date']}")
     job.enqueue(upload['source_url'], upload['title'], datetime.strptime(upload['date'], '%Y-%m-%d'),
                 upload['kind'], upload['origin'], upload['save_frames'], persist_days=persist_days, youtube_url=youtube_url, input=local_path)
     print("done")
@@ -39,6 +40,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             print('hello')
             status = job.get_status()
             for j in status:
+                print(f"date={j['date']}")
                 j['date'] = j['date'].strftime('%Y-%m-%d')
                 j['queued'] = j['queued'].isoformat()
                 j['duration'] = j['duration']
