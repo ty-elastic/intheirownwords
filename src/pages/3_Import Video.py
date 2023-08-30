@@ -33,40 +33,40 @@ def validate_input(source_url, title, kind, origin, youtube_link, uploaded_file)
         return False
     return True
 
+if origin is not None:
+    with st.form("upload", clear_on_submit=True):
+        source_url = st.text_input(
+            "URL of page video was scrapped from (for reference)")
+        title = st.text_input("Title")
+        date = st.date_input("Date Recorded")
+        #origin = st.text_input("Collection", help="e.g., company or organization name")
+        #origin = st.selectbox('Collection', es_origins.get_origins())
+        kinds = []
+        if origin_record is not None:
+            kinds = origin_record['kinds']
+            print(kinds)
+        kind = st.selectbox("Media Kind", kinds)
+        save_frames = st.checkbox("Save Slide Content?", value=False, help="check to save frames with possible slide content as images")
+        youtube_link = st.text_input("URL to YouTube Video", help='https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+        youtube_button = st.form_submit_button("Ingest from YouTube")
+        uploaded_file = st.file_uploader("Media File", type="mp4", help="use ffmpeg to coerce media into h264+aac/mp4")
+        upload_button = st.form_submit_button("Ingest from File")
 
-with st.form("upload", clear_on_submit=True):
-    source_url = st.text_input(
-        "URL of page video was scrapped from (for reference)")
-    title = st.text_input("Title")
-    date = st.date_input("Date Recorded")
-    #origin = st.text_input("Collection", help="e.g., company or organization name")
-    #origin = st.selectbox('Collection', es_origins.get_origins())
-    kinds = []
-    if origin_record is not None:
-        kinds = origin_record['kinds']
-        print(kinds)
-    kind = st.selectbox("Media Kind", kinds)
-    save_frames = st.checkbox("Save Slide Content?", value=False, help="check to save frames with possible slide content as images")
-    youtube_link = st.text_input("URL to YouTube Video", help='https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-    youtube_button = st.form_submit_button("Ingest from YouTube")
-    uploaded_file = st.file_uploader("Media File", type="mp4", help="use ffmpeg to coerce media into h264+aac/mp4")
-    upload_button = st.form_submit_button("Ingest from File")
+    if youtube_button:
+        if validate_input(source_url, title, kind, origin, youtube_link, uploaded_file):
+            api_import_client.enqueue(source_url, title, date,
+                        kind, origin, save_frames, youtube_url=youtube_link)
+        else:
+            st.error('incomplete form')
 
-if youtube_button:
-    if validate_input(source_url, title, kind, origin, youtube_link, uploaded_file):
-        api_import_client.enqueue(source_url, title, date,
-                    kind, origin, save_frames, youtube_url=youtube_link)
-    else:
-        st.error('incomplete form')
+    if upload_button:
+        if validate_input(source_url, title, kind, origin, youtube_link, uploaded_file):
+            input = os.path.join(storage.INGEST_DIR, str(uuid.uuid4()) + ".mp4")
 
-if upload_button:
-    if validate_input(source_url, title, kind, origin, youtube_link, uploaded_file):
-        input = os.path.join(storage.INGEST_DIR, str(uuid.uuid4()) + ".mp4")
+            with open(input, "wb") as f:
+                f.write(uploaded_file.getbuffer())
 
-        with open(input, "wb") as f:
-            f.write(uploaded_file.getbuffer())
-
-        api_import_client.enqueue(source_url, title, date,
-                    kind, origin, save_frames, local_path=input)
-    else:
-        st.error('incomplete form')
+            api_import_client.enqueue(source_url, title, date,
+                        kind, origin, save_frames, local_path=input)
+        else:
+            st.error('incomplete form')
