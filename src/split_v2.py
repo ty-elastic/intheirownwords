@@ -18,7 +18,7 @@ SPACE_SIZE = 5
 MAX_P_SIZE = 5
 ORDER = 2
 
-# inspired by https://github.com/poloniki/quint
+# copied from https://github.com/poloniki/quint
 
 sentence_sim_model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 

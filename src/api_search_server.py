@@ -5,9 +5,37 @@ from tornado.web import RequestHandler
 from mimetypes import guess_type
 import fsspec
 import es_clauses
+from yaml.loader import SafeLoader
+import yaml
+import bcrypt
+import streamlit_authenticator as stauth
+
+SEARCH_USERNAME = "apikey"
+
+class ValidateKey:
+    def __init__(self):
+        with open('auth/users.yaml') as file:
+            self.config = yaml.load(file, Loader=SafeLoader)
+        self.credentials = self.config['credentials']
+        self.credentials['usernames'] = {key.lower(): value for key, value in self.credentials['usernames'].items()}
+        print(self.credentials['usernames'])
+
+    def check_apikey(self, user, apikey):
+        return bcrypt.checkpw(apikey.encode(), 
+            self.credentials['usernames'][user]['password'].encode())
+
+keyValidator = ValidateKey()
 
 class SearchHandler(RequestHandler):
     def get(self):
+
+        apiKey = self.get_argument('x-api-key')
+        if not keyValidator.check_apikey(SEARCH_USERNAME, apiKey):
+            self.set_status(401)
+            self.write("unauthorized")
+            self.finish()
+            return
+
         origin = self.get_argument('origin')
         query = self.get_argument('query')
         size=None
