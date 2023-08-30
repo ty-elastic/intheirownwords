@@ -8,6 +8,7 @@ import shutil
 import traceback
 import os 
 from pytube import YouTube
+import copy
 
 INGEST_DIR="ingest"
 PERSIST_DAYS_DEFAULT=60
@@ -86,7 +87,7 @@ def start():
     process_loop()
 
 def get_status():
-    return jobs
+    return copy.deepcopy(jobs)
 
 # always start queue (even if it isn't used)
 #start()
