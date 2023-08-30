@@ -9,6 +9,7 @@ services:
       - $PWD/prj:/home/intheirownwords/prj
       - $PWD/ingest:/home/intheirownwords/ingest
       - /usr/local/cuda:/usr/local/cuda
+      - $PWD/cache:/root/.cache
     env_file:
       - env.vars
     deploy:
