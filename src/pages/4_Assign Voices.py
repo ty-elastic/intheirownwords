@@ -32,8 +32,8 @@ for voice in voices:
                     " - " + str(voice['example.end']))
         # st.video(voice['example.url'], format="video/mp4",
         #             start_time=int(voice['example.start']))
-        with storage.get_file(voice['example.url']) as video_file:
-            placeholder.video(video_file.read(), format="video/mp4", start_time=int(voice['example.start']))
+        video_file = storage.get_file(voice['example.url'])
+        placeholder.video(video_file.read(), format="video/mp4", start_time=int(voice['example.start']))
         with st.form(voice['_id'], clear_on_submit=True):
             forms[voice['_id']]['speaker_name'] = st.text_input(
                 "Name: ")
