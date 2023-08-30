@@ -67,9 +67,9 @@ def create_project(input, source_url, title, date, kind, origin, save_frames, pe
 def process(input, source_url, title, date, kind, origin, save_frames, persist_days):
     start_time = time.time()
 
-    project = prj.create_project(input, source_url, title, date, kind, origin, save_frames, persist_days)
+    project = create_project(input, source_url, title, date, kind, origin, save_frames, persist_days)
     print ("conform_audio")
-    prj.conform_audio(project)
+    conform_audio(project)
 
     print ("detect_slides")
     slides.detect_slides(project)
@@ -86,4 +86,4 @@ def process(input, source_url, title, date, kind, origin, save_frames, persist_d
     end_time = time.time()
     print (end_time - start_time)
     
-    prj.delete_project(project)
+    delete_project(project)
