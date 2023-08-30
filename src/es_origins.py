@@ -4,17 +4,6 @@ import es_helpers
 import storage
 
 ORIGINS_INDEX="origins"
-INGEST_DIR="ingest"
-
-def upload_logo(uploaded_file, origin_id):
-    split_tup = os.path.splitext(uploaded_file.name)
-    input = os.path.join(INGEST_DIR, origin_id + split_tup[1])
-    with open(input, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-    logo_url = storage.upload_logo(input)
-    os.remove(input)
-    print(logo_url)
-    return logo_url
 
 def add_origin(origin_id, origin, logo_url, homepage_url, media_kinds, results_size):
 

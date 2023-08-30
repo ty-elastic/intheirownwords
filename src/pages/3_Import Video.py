@@ -1,10 +1,9 @@
 import streamlit as st
-from io import StringIO
 import os
 import api_import_client
 import uuid
 import es_origins
-import es_clauses
+import storage
 
 APP_NAME = "Import Video"
 st.set_page_config(layout="wide", page_title=APP_NAME)
@@ -62,7 +61,7 @@ if youtube_button:
 
 if upload_button:
     if validate_input(source_url, title, kind, origin, youtube_link, uploaded_file):
-        input = os.path.join(job.INGEST_DIR, str(uuid.uuid4()) + ".mp4")
+        input = os.path.join(storage.INGEST_DIR, str(uuid.uuid4()) + ".mp4")
 
         with open(input, "wb") as f:
             f.write(uploaded_file.getbuffer())

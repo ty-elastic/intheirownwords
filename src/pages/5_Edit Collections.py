@@ -4,6 +4,7 @@ import es_origins
 from streamlit_tags import st_tags, st_tags_sidebar
 from hashlib import sha512
 import os
+import storage
 
 KINDS = ['Webinar', 'Tutorial', 'Meeting']
 
@@ -79,7 +80,7 @@ if upload_button:
         
         logo_url = None
         if uploaded_file:
-            logo_url = es_origins.upload_logo(uploaded_file, origin_id)
+            logo_url = storage.upload_logo(uploaded_file, origin_id)
         elif 'logo_url' in origin_record:
             logo_url = origin_record['logo_url']
 
