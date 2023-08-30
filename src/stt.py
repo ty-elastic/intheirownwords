@@ -14,7 +14,6 @@ def speech_to_text(project):
 
     # 1. Transcribe with original whisper (batched)
     model = whisperx.load_model("large-v2", DEVICE, compute_type=COMPUTE_TYPE, asr_options={"word_timestamps": False}, language='en')
-
     audio = whisperx.load_audio(project['conformed_audio'])
     result = model.transcribe(audio, batch_size=BATCH_SIZE, language='en')
     #print(result["segments"]) # before alignment
@@ -23,6 +22,7 @@ def speech_to_text(project):
     gc.collect()
     torch.cuda.empty_cache()
     del model
+    print("after transcribe")
 
     # 2. Align whisper output
     model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=DEVICE)
@@ -34,6 +34,7 @@ def speech_to_text(project):
     gc.collect()
     torch.cuda.empty_cache()
     del model_a
+    print("after align")
 
     # 3. Assign speaker labels
     diarize_model = stt_diarize.DiarizationPipeline(use_auth_token=os.getenv('HF_TOKEN'), device=DEVICE)
@@ -41,6 +42,12 @@ def speech_to_text(project):
     # add min/max number of speakers if known
     diarize_segments, embeddings = diarize_model(project['conformed_audio'])
     # diarize_model(audio_file, min_speakers=min_speakers, max_speakers=max_speakers)
+
+    # delete model if low on GPU resources
+    gc.collect()
+    torch.cuda.empty_cache()
+    del diarize_model
+    print("after diarize_model")
 
     speakers = {}
     for i, embedding in enumerate(embeddings):
@@ -58,10 +65,6 @@ def speech_to_text(project):
     # print(diarize_segments)
     # print(result["segments"]) # segments are now assigned speaker IDs
 
-    # delete model if low on GPU resources
-    gc.collect()
-    torch.cuda.empty_cache()
-    del diarize_model
 
     #print(result["segments"])
     return result["segments"]
