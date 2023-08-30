@@ -87,8 +87,13 @@ def start():
     process_loop()
 
 def get_status():
-    return copy.copy(jobs)
-
+    status = []
+    for job in jobs:
+        stat = {}
+        for key in job:
+            stat[key] = job[key]
+        status.append(stat)
+    return status
 # always start queue (even if it isn't used)
 #start()
 
