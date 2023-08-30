@@ -67,6 +67,6 @@ if upload_button:
             f.write(uploaded_file.getbuffer())
 
         api_import_client.enqueue(source_url, title, date,
-                    kind, origin, save_frames, input=input)
+                    kind, origin, save_frames, local_path=input)
     else:
         st.error('incomplete form')
