@@ -12,6 +12,7 @@ import es_origins
 from st_inject_api import CustomRule, init_global_tornado_hook, uninitialize_global_tornado_hook
 from api_search_server import SearchHandler, StatusHandler, MediaHandler
 import dateutil
+import storage
 
 init_global_tornado_hook([CustomRule("/origins/.*", MediaHandler, name="/origins"),
                           CustomRule("/projects/.*", MediaHandler, name="/projects"),
@@ -140,9 +141,11 @@ if st.session_state["authentication_status"]:
                         with placeholder:
                             with st.spinner('loading...'):
                                 time.sleep(0.1)
-                            media_url = BASE_URL + clause['media.url']
                             print(f"start={int(clause['media.start'])}")
-                            placeholder.video(media_url, format="video/mp4", start_time=int(clause['media.start']))
+                            #media_url = BASE_URL + clause['media.url']
+                            #placeholder.video(media_url, format="video/mp4", start_time=int(clause['media.start']))
+                            with storage.get_file(clause['media.url']) as video_file:
+                                placeholder.video(video_file.read(), format="video/mp4", start_time=int(clause['media.start']))
 
                     st.write("---")
 
