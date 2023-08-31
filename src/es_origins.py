@@ -61,6 +61,7 @@ def get_origin(origin):
             doc = es_helpers.strip_field_arrays(body)
             if not isinstance(doc['kinds'], collections.abc.Sequence):
                 doc['kinds'] = [doc['kinds']]
+            print(doc)
             return doc
         return None
     
