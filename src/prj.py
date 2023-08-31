@@ -10,6 +10,7 @@ import split
 import es_clauses
 import time
 import json
+import tracemalloc
 
 #local disk temp prj directory
 PROJECT_DIR = "prj"
@@ -65,6 +66,9 @@ def create_project(input, source_url, title, date, kind, origin, save_frames, pe
 
 
 def process(input, source_url, title, date, kind, origin, save_frames, persist_days):
+
+    tracemalloc.start()
+
     start_time = time.time()
 
     project = create_project(input, source_url, title, date, kind, origin, save_frames, persist_days)
@@ -87,3 +91,9 @@ def process(input, source_url, title, date, kind, origin, save_frames, persist_d
     print (f"duration={end_time - start_time}")
     
     delete_project(project)
+
+    snapshot = tracemalloc.take_snapshot()
+    top_stats = snapshot.statistics('lineno')
+    
+    for stat in top_stats[:10]:
+        print(stat)
