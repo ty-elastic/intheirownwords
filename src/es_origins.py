@@ -7,6 +7,8 @@ ORIGINS_INDEX="origins"
 
 def add_origin(origin_id, origin, logo_url, homepage_url, media_kinds, results_size):
 
+    print(media_kinds)
+
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
     with Elasticsearch([url], verify_certs=True) as es:
 

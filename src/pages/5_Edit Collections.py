@@ -55,7 +55,7 @@ with st.form('edit', clear_on_submit=True):
     
     origin = st.text_input("Collection Name", value=origin_record['origin'], help="e.g., company or organization name", disabled=st.session_state.create_new == False)
     homepage_url = st.text_input("Organization homepage URL", value=origin_record['homepage_url'], help='https://www.elastic.co/')
-    media_kinds = keywords = st_tags(
+    media_kinds = st_tags(
         label='Media Kinds',
         text='Press enter to add more',
         value=origin_record['kinds'],
@@ -70,13 +70,12 @@ with st.form('edit', clear_on_submit=True):
     with hcol2:
         uploaded_file = st.file_uploader("Logo", type=["svg","jpg","png"])
 
-
     upload_button = st.form_submit_button("Submit")
 
 if upload_button:
     if validate_input(origin, homepage_url):    
         origin_id = str(sha512(origin.encode('utf-8')).hexdigest())
-
+        print(f"kinds={media_kinds}")
         
         logo_url = None
         if uploaded_file:
