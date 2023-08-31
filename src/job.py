@@ -79,6 +79,7 @@ def process_loop():
         if project['input'] is not None and os.path.exists(project['input']):
             os.remove(project['input'])
         q.task_done()
+        del project
         gc.collect()
         torch.cuda.empty_cache()
 
