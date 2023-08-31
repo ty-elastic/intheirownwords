@@ -64,10 +64,19 @@ def create_project(input, source_url, title, date, kind, origin, save_frames, pe
     project['media_url'] = storage.upload_project_file(project, None, media_path)
     return project
 
+def dump_mem():
+    print("----- MEM DUMP")
+    snapshot = tracemalloc.take_snapshot()
+    top_stats = snapshot.statistics('traceback')
+    for stat in top_stats[:5]:
+        print("--BLOCK")
+        print("%s memory blocks: %.1f KiB" % (stat.count, stat.size / 1024))
+        for line in stat.traceback.format():
+            print(line)
 
 def process(input, source_url, title, date, kind, origin, save_frames, persist_days):
 
-    tracemalloc.start()
+    tracemalloc.start(25)
 
     start_time = time.time()
 
@@ -92,8 +101,4 @@ def process(input, source_url, title, date, kind, origin, save_frames, persist_d
     
     delete_project(project)
 
-    snapshot = tracemalloc.take_snapshot()
-    top_stats = snapshot.statistics('lineno')
-    
-    for stat in top_stats[:10]:
-        print(stat)
+    dump_mem()
