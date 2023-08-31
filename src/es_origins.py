@@ -2,6 +2,7 @@ from elasticsearch import Elasticsearch, helpers
 import os
 import es_helpers
 import storage
+import collections.abc
 
 ORIGINS_INDEX="origins"
 
@@ -58,6 +59,8 @@ def get_origin(origin):
         if len(resp['hits']['hits']) > 0:
             body = resp['hits']['hits'][0]['fields']
             doc = es_helpers.strip_field_arrays(body)
+            if not isinstance(doc['kinds'], collections.abc.Sequence):
+                doc['kinds'] = [doc['kinds']]
             return doc
         return None
     
