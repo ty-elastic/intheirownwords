@@ -19,6 +19,7 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+    restart: on-failure
   ui:
     build:
       dockerfile: Dockerfile.ui
@@ -30,3 +31,4 @@ services:
       - $PWD/ingest:/home/intheirownwords/ingest
     env_file:
       - env.vars
+    restart: on-failure
