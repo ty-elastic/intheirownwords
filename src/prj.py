@@ -76,7 +76,7 @@ def dump_mem():
 
 def process(input, source_url, title, date, kind, origin, save_frames, persist_days):
 
-    tracemalloc.start(25)
+    #tracemalloc.start(25)
 
     start_time = time.time()
 
@@ -101,4 +101,4 @@ def process(input, source_url, title, date, kind, origin, save_frames, persist_d
     
     delete_project(project)
 
-    dump_mem()
+    #dump_mem()
