@@ -67,5 +67,5 @@ def speech_to_text(project):
     # print(result["segments"]) # segments are now assigned speaker IDs
 
 
-    #print(result["segments"])
+    print(result["segments"])
     return result["segments"]
