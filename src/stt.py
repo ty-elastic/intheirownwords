@@ -31,6 +31,7 @@ def speech_to_text(project):
     #print(result["segments"]) # after alignment
 
     # delete model if low on GPU resources
+    del audio
     del model_a
     del metadata
     gc.collect()
@@ -67,5 +68,5 @@ def speech_to_text(project):
     # print(result["segments"]) # segments are now assigned speaker IDs
 
 
-    print(result["segments"])
+    #print(result["segments"])
     return result["segments"]
