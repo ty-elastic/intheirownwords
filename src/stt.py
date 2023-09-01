@@ -90,7 +90,7 @@ def diarize(stt_segments, project):
         start = start+SPLIT_VIDEOS_SECS
 
     diarize_segments = pd.concat(_diarize_segments)
-    # print(diarize_segments)
+    print(diarize_segments)
     return diarize_segments
 
 def speech_to_text(project):
