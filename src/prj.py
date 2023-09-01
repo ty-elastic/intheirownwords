@@ -20,20 +20,6 @@ SAMPLE_RATE = 16000
 def delete_project(project):
     shutil.rmtree( project['path'], ignore_errors=True)
 
-def conform_audio(project):
-    project['conformed_audio'] = project['path'] + "/" + project['id'] + ".wav"
-    try:
-        # This launches a subprocess to decode audio while down-mixing and resampling as necessary.
-        # Requires the ffmpeg CLI and `ffmpeg-python` package to be installed.
-        out, _ = (
-            ffmpeg.input(project['input'], threads=0)
-            .output(project['conformed_audio'], acodec="pcm_s16le", ac=1, ar=SAMPLE_RATE)
-            .run(cmd=["ffmpeg", "-nostdin"], capture_stdout=True, capture_stderr=True)
-        )
-        return project['conformed_audio']
-    except ffmpeg.Error as e:
-        raise RuntimeError(f"Failed to load audio: {e.stderr.decode()}") from e
-
 def create_project(input, source_url, title, date, kind, origin, save_frames, persist_days):
 
     project_id = str(uuid.uuid4())
@@ -81,8 +67,8 @@ def process(input, source_url, title, date, kind, origin, save_frames, persist_d
     start_time = time.time()
 
     project = create_project(input, source_url, title, date, kind, origin, save_frames, persist_days)
-    print ("conform_audio")
-    conform_audio(project)
+    # print ("conform_audio")
+    # conform_audio(project)
 
     print ("detect_slides")
     slides.detect_slides(project)

@@ -10,6 +10,20 @@ DEVICE = "cuda"
 BATCH_SIZE = 16 # reduce if low on GPU mem
 COMPUTE_TYPE = "float16" # change to "int8" if low on GPU mem (may reduce accuracy)
 
+def conform_audio(project, i, start, stop):
+    path = project['path'] + "/" + project['id'] + "." + i + ".wav"
+    try:
+        # This launches a subprocess to decode audio while down-mixing and resampling as necessary.
+        # Requires the ffmpeg CLI and `ffmpeg-python` package to be installed.
+        out, _ = (
+            ffmpeg.input(project['input'], threads=0, ss=start, to=stop)
+            .output(path, acodec="pcm_s16le", ac=1, ar=SAMPLE_RATE)
+            .run(cmd=["ffmpeg", "-nostdin"], capture_stdout=True, capture_stderr=True)
+        )
+        return path
+    except ffmpeg.Error as e:
+        raise RuntimeError(f"Failed to load audio: {e.stderr.decode()}") from e
+
 def speech_to_text(project):
 
     # 1. Transcribe with original whisper (batched)
@@ -38,18 +52,41 @@ def speech_to_text(project):
     torch.cuda.empty_cache()
     print("after align")
 
-    # 3. Assign speaker labels
-    diarize_model = stt_diarize.DiarizationPipeline(use_auth_token=os.getenv('HF_TOKEN'), device=DEVICE)
+    cut_points = []
+    next_end = 3600
 
-    # add min/max number of speakers if known
-    diarize_segments, embeddings = diarize_model(project['conformed_audio'])
-    # diarize_model(audio_file, min_speakers=min_speakers, max_speakers=max_speakers)
+    # split into parts
+    for i, segment in enumerate(result["segments"]):
+        if segment['start'] > next_end:
+            cut_points.append(i)
+            next_end = next_end + 3600
+    cut_point.append(len(result["segments"]))
 
-    # delete model if low on GPU resources
-    del diarize_model
-    gc.collect()
-    torch.cuda.empty_cache()
+    i = 0
+    for j, cut_point in enumerate(cut_points):
+        chunk = result["segments"][i:cut_point]
+        start = chunk[0]['start']
+        end = chunk[0]['end']
+
+        # 3. Assign speaker labels
+        diarize_model = stt_diarize.DiarizationPipeline(use_auth_token=os.getenv('HF_TOKEN'), device=DEVICE)
+
+        conformed_audio = conform_audio(project, j, start, end)
+
+        # add min/max number of speakers if known
+        diarize_segments, embeddings = diarize_model(conformed_audio)
+        # diarize_model(audio_file, min_speakers=min_speakers, max_speakers=max_speakers)
+
+        # delete model if low on GPU resources
+        del diarize_model
+        gc.collect()
+        torch.cuda.empty_cache()
+        
+        i = cut_point
+
     print("after diarize_model")
+
+
 
     speakers = {}
     for i, embedding in enumerate(embeddings):
