@@ -87,7 +87,11 @@ def speech_to_text(project):
         __diarize_segments, embeddings = diarize_model(conformed_audio, start)
         # diarize_model(audio_file, min_speakers=min_speakers, max_speakers=max_speakers)
 
-        speaker_ids = []
+        print("hi")
+        print(len(__diarize_segments))
+        print(len(embeddings))
+
+        speaker_id_map = {}
         for i, embedding in enumerate(embeddings):
             speaker_id = es_voices.lookup_speaker(embedding)
             if speaker_id == None:
@@ -96,10 +100,14 @@ def speech_to_text(project):
                         #print("FOUND")
                         speaker_id = es_voices.add_speaker(project, embedding, project['media_url'], __diarize_segments['start'][j], __diarize_segments['end'][j])
                         break
-            speaker_ids.append(speaker_id)
-            #speakers[f"SPEAKER_{i:02}"] = speaker_id
+            speaker_id_map[f"SPEAKER_{i:02}"] = speaker_id
 
-        df2 = __diarize_segments.assign(speaker_id=speaker_ids)
+        # apply labels
+        speakers_ids = []
+        for speaker in __diarize_segments['speaker']:
+            speakers_ids.append(speaker_id_map[speaker])
+
+        df2 = __diarize_segments.assign(speaker_id=speakers_ids)
         _diarize_segments.append(df2)
 
         # delete model if low on GPU resources

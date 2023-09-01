@@ -1,11 +1,28 @@
 
 import os
 import fsspec
+import shutil
 
 ORIGIN_BUCKET = "origins"
 PROJECT_BUCKET = "projects"
 
 INGEST_DIR="ingest"
+PROJECT_DIR = "prj"
+
+def clean_temp_folders():
+    clean_folder(INGEST_DIR)
+    clean_folder(PROJECT_DIR)
+
+def clean_folder(folder):
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
 
 def upload_logo(uploaded_file, origin_id):
     split_tup = os.path.splitext(uploaded_file.name)

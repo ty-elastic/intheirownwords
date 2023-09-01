@@ -1,7 +1,6 @@
 import os 
 import shutil
 import uuid
-import ffmpeg
 import storage
 from datetime import datetime
 import slides
@@ -9,12 +8,10 @@ import stt
 import split
 import es_clauses
 import time
-import json
 import tracemalloc
 
 #local disk temp prj directory
 PROJECT_DIR = "prj"
-
 
 def delete_project(project):
     shutil.rmtree( project['path'], ignore_errors=True)
@@ -66,11 +63,9 @@ def process(input, source_url, title, date, kind, origin, save_frames, persist_d
     start_time = time.time()
 
     project = create_project(input, source_url, title, date, kind, origin, save_frames, persist_days)
-    # print ("conform_audio")
-    # conform_audio(project)
 
-    # print ("detect_slides")
-    # slides.detect_slides(project)
+    print ("detect_slides")
+    slides.detect_slides(project)
 
     print ("speech_to_text")
     segments = stt.speech_to_text(project)

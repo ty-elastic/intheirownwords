@@ -41,4 +41,6 @@ COPY src/pages/*.py pages/
 
 COPY doc/ui.md doc/ui.md
 
+ENV PYTHONUNBUFFERED=1
+
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "intheirownwords", "streamlit", "run", "1_Search.py"]

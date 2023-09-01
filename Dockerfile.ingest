@@ -47,4 +47,6 @@ WORKDIR /home/intheirownwords
 
 COPY src/*.py ./
 
+ENV PYTHONUNBUFFERED=1
+
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "intheirownwords", "python", "-u", "main.py"]
