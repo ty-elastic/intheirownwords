@@ -15,21 +15,21 @@ class DiarizationPipeline:
             device = torch.device(device)
         self.model = Pipeline.from_pretrained(model_name, use_auth_token=use_auth_token).to(device)
 
-    def __call__(self, audio, min_speakers=None, max_speakers=None):
+    def __call__(self, audio, offset, min_speakers=None, max_speakers=None):
 
         segments, embeddings = self.model(audio, min_speakers=min_speakers, max_speakers=max_speakers, return_embeddings=True)
 
         diarize_df = pd.DataFrame(segments.itertracks(yield_label=True))
-        diarize_df['start'] = diarize_df[0].apply(lambda x: x.start) 
-
-        diarize_df['end'] = diarize_df[0].apply(lambda x: x.end)
+        diarize_df['start'] = diarize_df[0].apply(lambda x: x.start + offset)
+        diarize_df['end'] = diarize_df[0].apply(lambda x: x.end + offset)
+        
         diarize_df.rename(columns={2: "speaker"}, inplace=True)
 
         #print(diarize_df)
         return diarize_df, embeddings
 
 
-def assign_word_speakers(diarize_df, transcript_result, speakers, fill_nearest=False):
+def assign_word_speakers(diarize_df, transcript_result, fill_nearest=False):
     transcript_segments = transcript_result["segments"]
     for seg in transcript_segments:
         # assign speaker to segment (if any)
@@ -42,9 +42,11 @@ def assign_word_speakers(diarize_df, transcript_result, speakers, fill_nearest=F
             dia_tmp = diarize_df
         if len(dia_tmp) > 0:
             # sum over speakers
-            speaker = dia_tmp.groupby("speaker")["intersection"].sum().sort_values(ascending=False).index[0]
-            seg["speaker"] = speaker
-            seg["speaker_id"] = speakers[speaker]
+            #speaker = dia_tmp.groupby("speaker")["intersection"].sum().sort_values(ascending=False).index[0]
+            #seg["speaker"] = speaker
+            #seg["speaker_id"] = speakers[speaker]
+            speaker_id = dia_tmp.groupby("speaker_id")["intersection"].sum().sort_values(ascending=False).index[0]
+            seg["speaker_id"] = speaker_id
         else:
             seg['speaker_id'] = None
         

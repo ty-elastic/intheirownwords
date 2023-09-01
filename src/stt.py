@@ -2,6 +2,9 @@ import whisperx
 import gc 
 import os
 import torch
+import ffmpeg 
+import math
+import pandas as pd
 
 import stt_diarize
 import es_voices
@@ -10,25 +13,38 @@ DEVICE = "cuda"
 BATCH_SIZE = 16 # reduce if low on GPU mem
 COMPUTE_TYPE = "float16" # change to "int8" if low on GPU mem (may reduce accuracy)
 
-def conform_audio(project, i, start, stop):
-    path = project['path'] + "/" + project['id'] + "." + i + ".wav"
+# 30min
+SPLIT_VIDEOS_SECS = 30*60
+SAMPLE_RATE = 16000
+
+def conform_audio(project, i=0, start=0, stop=-1):
+    
     try:
-        # This launches a subprocess to decode audio while down-mixing and resampling as necessary.
-        # Requires the ffmpeg CLI and `ffmpeg-python` package to be installed.
-        out, _ = (
-            ffmpeg.input(project['input'], threads=0, ss=start, to=stop)
-            .output(path, acodec="pcm_s16le", ac=1, ar=SAMPLE_RATE)
-            .run(cmd=["ffmpeg", "-nostdin"], capture_stdout=True, capture_stderr=True)
-        )
+        if stop == -1:
+            path = project['path'] + "/" + project['id'] + ".wav"
+            out, _ = (
+                ffmpeg.input(project['input'], threads=0)
+                .output(path, acodec="pcm_s16le", ac=1, ar=SAMPLE_RATE)
+                .run(cmd=["ffmpeg", "-nostdin"], capture_stdout=True, capture_stderr=True)
+            )
+        else:
+            path = project['path'] + "/" + project['id'] + "." + str(i) + ".wav"
+            out, _ = (
+                ffmpeg.input(project['input'], threads=0, ss=start, to=stop)
+                .output(path, acodec="pcm_s16le", ac=1, ar=SAMPLE_RATE)
+                .run(cmd=["ffmpeg", "-nostdin"], capture_stdout=True, capture_stderr=True)
+            )
         return path
     except ffmpeg.Error as e:
         raise RuntimeError(f"Failed to load audio: {e.stderr.decode()}") from e
 
 def speech_to_text(project):
 
+    conformed_audio = conform_audio(project)
+
     # 1. Transcribe with original whisper (batched)
     model = whisperx.load_model("large-v2", DEVICE, compute_type=COMPUTE_TYPE, asr_options={"word_timestamps": False}, language='en')
-    audio = whisperx.load_audio(project['conformed_audio'])
+    audio = whisperx.load_audio(conformed_audio)
     result = model.transcribe(audio, batch_size=BATCH_SIZE, language='en')
     #print(result["segments"]) # before alignment
 
@@ -52,58 +68,57 @@ def speech_to_text(project):
     torch.cuda.empty_cache()
     print("after align")
 
-    cut_points = []
-    next_end = 3600
+    end_time = result["segments"][len(result["segments"])-1]['end']
+    audio_chunks = math.ceil(end_time / SPLIT_VIDEOS_SECS)
+    print(audio_chunks)
 
-    # split into parts
-    for i, segment in enumerate(result["segments"]):
-        if segment['start'] > next_end:
-            cut_points.append(i)
-            next_end = next_end + 3600
-    cut_point.append(len(result["segments"]))
+    _diarize_segments = []
 
-    i = 0
-    for j, cut_point in enumerate(cut_points):
-        chunk = result["segments"][i:cut_point]
-        start = chunk[0]['start']
-        end = chunk[0]['end']
+    start = 0
+    for i in range(audio_chunks):
 
         # 3. Assign speaker labels
         diarize_model = stt_diarize.DiarizationPipeline(use_auth_token=os.getenv('HF_TOKEN'), device=DEVICE)
 
-        conformed_audio = conform_audio(project, j, start, end)
+        print(f"start={start}, end={start+SPLIT_VIDEOS_SECS}")
+        conformed_audio = conform_audio(project, i, start, start+SPLIT_VIDEOS_SECS)
 
         # add min/max number of speakers if known
-        diarize_segments, embeddings = diarize_model(conformed_audio)
+        __diarize_segments, embeddings = diarize_model(conformed_audio, start)
         # diarize_model(audio_file, min_speakers=min_speakers, max_speakers=max_speakers)
+
+        speaker_ids = []
+        for i, embedding in enumerate(embeddings):
+            speaker_id = es_voices.lookup_speaker(embedding)
+            if speaker_id == None:
+                for j, speaker in enumerate(__diarize_segments['speaker']):
+                    if speaker == f"SPEAKER_{i:02}":
+                        #print("FOUND")
+                        speaker_id = es_voices.add_speaker(project, embedding, project['media_url'], __diarize_segments['start'][j], __diarize_segments['end'][j])
+                        break
+            speaker_ids.append(speaker_id)
+            #speakers[f"SPEAKER_{i:02}"] = speaker_id
+
+        df2 = __diarize_segments.assign(speaker_id=speaker_ids)
+        _diarize_segments.append(df2)
 
         # delete model if low on GPU resources
         del diarize_model
         gc.collect()
         torch.cuda.empty_cache()
         
-        i = cut_point
+        start = start+SPLIT_VIDEOS_SECS
 
     print("after diarize_model")
 
+    diarize_segments = pd.concat(_diarize_segments)
+    print(diarize_segments)
 
 
-    speakers = {}
-    for i, embedding in enumerate(embeddings):
-        speaker_id = es_voices.lookup_speaker(embedding)
-        if speaker_id == None:
-            for j, speaker in enumerate(diarize_segments['speaker']):
-                if speaker == f"SPEAKER_{i:02}":
-                    #print("FOUND")
-                    speaker_id = es_voices.add_speaker(project, embedding, project['media_url'], diarize_segments['start'][j], diarize_segments['end'][j])
-                    break
-        speakers[f"SPEAKER_{i:02}"] = speaker_id
-    # print(speakers)
-
-    result = stt_diarize.assign_word_speakers(diarize_segments, result, speakers)
+    result = stt_diarize.assign_word_speakers(diarize_segments, result)
     # print(diarize_segments)
     # print(result["segments"]) # segments are now assigned speaker IDs
 
 
-    #print(result["segments"])
+    print(result["segments"])
     return result["segments"]

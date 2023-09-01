@@ -15,7 +15,6 @@ import tracemalloc
 #local disk temp prj directory
 PROJECT_DIR = "prj"
 
-SAMPLE_RATE = 16000
 
 def delete_project(project):
     shutil.rmtree( project['path'], ignore_errors=True)
@@ -70,8 +69,8 @@ def process(input, source_url, title, date, kind, origin, save_frames, persist_d
     # print ("conform_audio")
     # conform_audio(project)
 
-    print ("detect_slides")
-    slides.detect_slides(project)
+    # print ("detect_slides")
+    # slides.detect_slides(project)
 
     print ("speech_to_text")
     segments = stt.speech_to_text(project)
