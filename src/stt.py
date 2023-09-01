@@ -38,6 +38,61 @@ def conform_audio(project, i=0, start=0, stop=-1):
     except ffmpeg.Error as e:
         raise RuntimeError(f"Failed to load audio: {e.stderr.decode()}") from e
 
+def diarize(stt_segments, project):
+
+    end_time = stt_segments["segments"][len(stt_segments["segments"])-1]['end']
+    audio_chunks = math.ceil(end_time / SPLIT_VIDEOS_SECS)
+    #print(audio_chunks)
+
+    _diarize_segments = []
+
+    start = 0
+    for i in range(audio_chunks):
+
+        # 3. Assign speaker labels
+        diarize_model = stt_diarize.DiarizationPipeline(use_auth_token=os.getenv('HF_TOKEN'), device=DEVICE)
+
+        # print(f"start={start}, end={start+SPLIT_VIDEOS_SECS}")
+        conformed_audio = conform_audio(project, i, start, start+SPLIT_VIDEOS_SECS)
+
+        # add min/max number of speakers if known
+        __diarize_segments, embeddings = diarize_model(conformed_audio, start)
+        # diarize_model(audio_file, min_speakers=min_speakers, max_speakers=max_speakers)
+
+        # print("hi")
+        # print(len(__diarize_segments))
+        # print(len(embeddings))
+
+        speaker_id_map = {}
+        for i, embedding in enumerate(embeddings):
+            speaker_id = es_voices.lookup_speaker(embedding)
+            if speaker_id == None:
+                for j, speaker in enumerate(__diarize_segments['speaker']):
+                    if speaker == f"SPEAKER_{i:02}":
+                        #print("FOUND")
+                        speaker_id = es_voices.add_speaker(project, embedding, project['media_url'], __diarize_segments['start'][j], __diarize_segments['end'][j])
+                        break
+            speaker_id_map[f"SPEAKER_{i:02}"] = speaker_id
+
+        # apply labels
+        speakers_ids = []
+        for speaker in __diarize_segments['speaker']:
+            speakers_ids.append(speaker_id_map[speaker])
+
+        df2 = __diarize_segments.assign(speaker_id=speakers_ids)
+        _diarize_segments.append(df2)
+
+        # delete model if low on GPU resources
+        del diarize_model
+        gc.collect()
+        torch.cuda.empty_cache()
+        
+        start = start+SPLIT_VIDEOS_SECS
+
+    diarize_segments = pd.concat(_diarize_segments)
+    # print(diarize_segments)
+    return diarize_segments
+
 def speech_to_text(project):
 
     conformed_audio = conform_audio(project)
@@ -68,65 +123,12 @@ def speech_to_text(project):
     torch.cuda.empty_cache()
     print("after align")
 
-    end_time = result["segments"][len(result["segments"])-1]['end']
-    audio_chunks = math.ceil(end_time / SPLIT_VIDEOS_SECS)
-    print(audio_chunks)
-
-    _diarize_segments = []
-
-    start = 0
-    for i in range(audio_chunks):
-
-        # 3. Assign speaker labels
-        diarize_model = stt_diarize.DiarizationPipeline(use_auth_token=os.getenv('HF_TOKEN'), device=DEVICE)
-
-        print(f"start={start}, end={start+SPLIT_VIDEOS_SECS}")
-        conformed_audio = conform_audio(project, i, start, start+SPLIT_VIDEOS_SECS)
-
-        # add min/max number of speakers if known
-        __diarize_segments, embeddings = diarize_model(conformed_audio, start)
-        # diarize_model(audio_file, min_speakers=min_speakers, max_speakers=max_speakers)
-
-        print("hi")
-        print(len(__diarize_segments))
-        print(len(embeddings))
-
-        speaker_id_map = {}
-        for i, embedding in enumerate(embeddings):
-            speaker_id = es_voices.lookup_speaker(embedding)
-            if speaker_id == None:
-                for j, speaker in enumerate(__diarize_segments['speaker']):
-                    if speaker == f"SPEAKER_{i:02}":
-                        #print("FOUND")
-                        speaker_id = es_voices.add_speaker(project, embedding, project['media_url'], __diarize_segments['start'][j], __diarize_segments['end'][j])
-                        break
-            speaker_id_map[f"SPEAKER_{i:02}"] = speaker_id
-
-        # apply labels
-        speakers_ids = []
-        for speaker in __diarize_segments['speaker']:
-            speakers_ids.append(speaker_id_map[speaker])
-
-        df2 = __diarize_segments.assign(speaker_id=speakers_ids)
-        _diarize_segments.append(df2)
-
-        # delete model if low on GPU resources
-        del diarize_model
-        gc.collect()
-        torch.cuda.empty_cache()
-        
-        start = start+SPLIT_VIDEOS_SECS
-
+    diarize_segments = diarize(result, project)
     print("after diarize_model")
-
-    diarize_segments = pd.concat(_diarize_segments)
-    print(diarize_segments)
-
 
     result = stt_diarize.assign_word_speakers(diarize_segments, result)
     # print(diarize_segments)
     # print(result["segments"]) # segments are now assigned speaker IDs
 
-
-    print(result["segments"])
+    #print(result["segments"])
     return result["segments"]
