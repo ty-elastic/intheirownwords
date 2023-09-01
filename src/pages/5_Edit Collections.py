@@ -76,6 +76,8 @@ if upload_button:
     if validate_input(origin, homepage_url):    
         origin_id = str(sha512(origin.encode('utf-8')).hexdigest())
         print(f"kinds={media_kinds}")
+        if media_kinds == None:
+            media_kinds = []
         
         logo_url = None
         if uploaded_file:
