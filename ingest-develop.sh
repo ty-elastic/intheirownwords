@@ -6,4 +6,4 @@ set +o allexport
 
 source /opt/conda/etc/profile.d/conda.sh
 conda activate intheirownwords
-python src/main.py $@
+python src/main.py
