@@ -1,1 +1,0 @@
-docker run --rm -d --name intheirownwords-ingest --runtime=nvidia --gpus all --env-file env.vars --net=host -v $PWD/auth:/home/intheirownwords/auth -v $PWD/prj:/home/intheirownwords/prj -v $PWD/ingest:/home/intheirownwords/ingest -v /usr/local/cuda:/usr/local/cuda intheirownwords-ingest $@

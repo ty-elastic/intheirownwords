@@ -61,7 +61,7 @@ if st.session_state["authentication_status"]:
     origin_rec = es_origins.get_origin(origin)
     print(f"ORIGIN={origin_rec}")
 
-    hcol1, hcol2 = st.columns([0.2, 0.8], gap="medium")
+    hcol1, hcol2 = st.columns([0.1, 0.9], gap="medium")
     with hcol1:
         if origin_rec is not None and 'logo_url' in origin_rec:
             img = BASE_URL + origin_rec['logo_url']
@@ -79,7 +79,7 @@ if st.session_state["authentication_status"]:
         if origin is not None:
 
             query = st.text_input(":mag_right: **What do you want to know?**")
-
+            #print(origin)
             speakers = es_voices.get_speakers(origin)
             speakers.insert(0, {'_id': 'anyone', 'speaker.name': 'anyone'})
             df = pd.DataFrame(speakers)
@@ -94,7 +94,7 @@ if st.session_state["authentication_status"]:
 
             kinds = es_clauses.get_kinds(origin)
             kinds.insert(0, 'any')
-            print(kinds)
+            #print(kinds)
             kind = st.selectbox("Kind", kinds)
 
 
@@ -147,7 +147,7 @@ if st.session_state["authentication_status"]:
                             with storage.get_file(clause['media.url']) as video_file:
                                 placeholder.video(video_file.read(), format="video/mp4", start_time=int(clause['media.start']))
 
-                    st.write("---")
+                    #st.write("---")
 
                         # st.write("---")
                         # if 'scene.frame_url' in results:

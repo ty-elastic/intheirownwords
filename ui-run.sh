@@ -1,1 +1,0 @@
-docker run --rm --name intheirownwords-ui -d --env-file env.vars -p 8501:8501 -v $PWD/auth:/home/intheirownwords/auth intheirownwords-ui
