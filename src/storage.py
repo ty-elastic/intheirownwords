@@ -24,11 +24,17 @@ def clean_folder(folder):
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
 
-def upload_logo(uploaded_file, origin_id):
-    split_tup = os.path.splitext(uploaded_file.name)
-    input = os.path.join(INGEST_DIR, origin_id + split_tup[1])
+def upload_logo(file_name, file_buffer, origin_id):
+    print(file_name)
+    split_tup = file_name.split(".")
+    split_tup.reverse()
+    print("BLAH")
+    print(split_tup)
+    ext = "." + split_tup[0]
+    print(ext)
+    input = os.path.join(INGEST_DIR, origin_id + ext)
     with open(input, "wb") as f:
-        f.write(uploaded_file.getbuffer())
+        f.write(file_buffer)
 
     file_path, file_name = os.path.split(input)
     remote_path = "/" + ORIGIN_BUCKET + "/" 

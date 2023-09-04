@@ -74,14 +74,14 @@ with st.form('edit', clear_on_submit=True):
 
 if upload_button:
     if validate_input(origin, homepage_url):    
-        origin_id = str(sha512(origin.encode('utf-8')).hexdigest())
+        origin_id = es_origins.hash_origin_id(origin)
         print(f"kinds={media_kinds}")
         if media_kinds == None:
             media_kinds = []
         
         logo_url = None
         if uploaded_file:
-            logo_url = storage.upload_logo(uploaded_file, origin_id)
+            logo_url = storage.upload_logo(uploaded_file.name, uploaded_file.getbuffer(), origin_id)
         elif 'logo_url' in origin_record:
             logo_url = origin_record['logo_url']
 

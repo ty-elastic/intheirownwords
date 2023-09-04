@@ -14,16 +14,19 @@ def ingest(upload):
     #print(input)
     local_path = None
     youtube_url = None
+    media_url = None
     if 'local_path' in upload:
         local_path = upload['local_path']
     if 'youtube_url' in upload:
         youtube_url = upload['youtube_url']
+    if 'media_url' in upload:
+        media_url = upload['media_url']
     persist_days = None
     if 'persist_days' in upload:
         persist_days =upload['persist_days']
     #print(f"upload['date']={upload['date']}")
     job.enqueue(upload['source_url'], upload['title'], datetime.strptime(upload['date'], '%Y-%m-%d'),
-                upload['kind'], upload['origin'], upload['save_frames'], persist_days=persist_days, youtube_url=youtube_url, input=local_path)
+                upload['kind'], upload['origin'], upload['save_frames'], persist_days=persist_days, youtube_url=youtube_url, input=local_path, media_url=media_url)
     #print("done")
 
 class Handler(http.server.SimpleHTTPRequestHandler):

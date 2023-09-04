@@ -10,12 +10,14 @@ import pandas as pd
 import ui_helpers
 import es_origins
 from st_inject_api import CustomRule, init_global_tornado_hook, uninitialize_global_tornado_hook
-from api_search_server import SearchHandler, StatusHandler, MediaHandler
+from api_search_server import SearchHandler, StatusHandler, MediaHandler, OriginHandler, ImportHandler
 import dateutil
 import storage
 
 init_global_tornado_hook([CustomRule("/origins/.*", MediaHandler, name="/origins"),
                           CustomRule("/projects/.*", MediaHandler, name="/projects"),
+                          CustomRule("/origin", OriginHandler, name="/origin"), 
+                          CustomRule("/import", ImportHandler, name="/import"), 
                           CustomRule("/search", SearchHandler, name="/search"), 
                           CustomRule("/status", StatusHandler, name="/status")])
 

@@ -1,7 +1,7 @@
 from elasticsearch import Elasticsearch, helpers
 import os
 import es_helpers
-
+from hashlib import sha512
 ORIGINS_INDEX="origins"
 
 def add_origin(origin_id, origin, logo_url, homepage_url, media_kinds, results_size):
@@ -39,6 +39,9 @@ def get_origins():
             origins.append(doc['origin'])
         print(origins)
         return origins
+    
+def hash_origin_id(origin):
+    return str(sha512(origin.encode('utf-8')).hexdigest())
 
 def get_origin(origin):
     if origin is None:
@@ -57,8 +60,13 @@ def get_origin(origin):
         if len(resp['hits']['hits']) > 0:
             body = resp['hits']['hits'][0]['fields']
             doc = es_helpers.strip_field_arrays(body)
-            if not isinstance(doc['kinds'], list):
-                doc['kinds'] = [doc['kinds']]
+            if 'kinds' in doc:
+                if not isinstance(doc['kinds'], list):
+                    doc['kinds'] = [doc['kinds']]
+            else:
+                doc['kinds'] = []
+            if not 'results.size' in doc:
+                doc['results.size'] = 1
             print(doc)
             return doc
         return None

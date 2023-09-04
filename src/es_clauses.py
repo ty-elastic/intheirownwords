@@ -42,7 +42,7 @@ def get_project(project_id):
     with Elasticsearch([url], verify_certs=True) as es:
         query = { "term": { "project_id": project_id } }
 
-        fields = ["kind", "origin", "date", "title", "media.url", "source_url"]
+        fields = ["kind", "origin", "date", "title", "media.url", "media_url", "source_url"]
         resp = es.search(index=CLAUSES_INDEX,
                             query=query,
                             fields=fields,
@@ -66,22 +66,20 @@ def get_projects(origin):
         }
         query = { "term": { "origin": origin } }
 
-        fields = ["kind", "origin", "date", "title", "media.url", "source_url"]
+        fields = ["kind", "origin", "date", "title", "media.url",  "media_url", "source_url"]
         resp = es.search(index=CLAUSES_INDEX,
                             aggs=aggs,
                             query=query,
                             fields=fields,
                             size=100,
                             source=False)
-        if len(resp['aggregations']['projects']) > 0:
-            projects = []
-            for bucket in resp['aggregations']['projects']['buckets']:
-                project = get_project(bucket['key'])
-                projects.append(project)
-            #print(projects)
-            return projects
-        else:
-            return None
+        #print(resp)
+        projects = []
+        for hit in resp['hits']['hits']:
+            #print(hit)
+            project = es_helpers.strip_field_arrays(hit['fields'])
+            projects.append(project)
+        return projects
 
 def get_kinds(origin):
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
@@ -129,10 +127,10 @@ def get_origins():
             origins = []
             for bucket in resp['aggregations']['origins']['buckets']:
                 origins.append(bucket['key'])
-            #print(origins)
+            print(origins)
             return origins
         else:
-            return None
+            return []
 
 
 def make_hybrid_query(origin, search_text, text_boost, keyword_boost, speaker_id=None, kind=None):

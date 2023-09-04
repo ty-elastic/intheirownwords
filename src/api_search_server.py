@@ -10,6 +10,11 @@ import yaml
 import bcrypt
 import streamlit_authenticator as stauth
 import storage
+import tornado
+import es_origins
+import requests
+
+from api_import_client import API_PORT
 
 SEARCH_USERNAME = "apikey"
 
@@ -26,6 +31,47 @@ class ValidateKey:
             self.credentials['usernames'][user]['password'].encode())
 
 keyValidator = ValidateKey()
+
+class OriginHandler(RequestHandler):
+    # should be post, by streamlit has some global post handler
+    def get(self):
+
+        apiKey = self.get_argument('x-api-key')
+        if not keyValidator.check_apikey(SEARCH_USERNAME, apiKey):
+            self.set_status(401)
+            self.write("unauthorized")
+            self.finish()
+            return
+
+        data = tornado.escape.json_decode(self.request.body)
+        print(data)
+
+        origin_id = es_origins.hash_origin_id(data['origin'])
+
+        response = requests.get(data['logo_url'], allow_redirects=True) 
+        logo_url = storage.upload_logo(data['logo_url'], response.content, origin_id)
+
+        es_origins.add_origin(origin_id, data['origin'], logo_url, data['homepage_url'], data['kinds'], data['results.size'])
+        self.set_status(200)
+        self.finish()
+
+class ImportHandler(RequestHandler):
+    # should be post, by streamlit has some global post handler
+    def get(self):
+        apiKey = self.get_argument('x-api-key')
+
+        if not keyValidator.check_apikey(SEARCH_USERNAME, apiKey):
+            self.set_status(401)
+            self.write("unauthorized")
+            self.finish()
+            return
+
+        data = tornado.escape.json_decode(self.request.body)
+        print(data)
+        response = requests.post(f"http://127.0.0.1:{API_PORT}/import", json=data)
+        print(response)
+        self.set_status(response.status_code)
+        self.finish()
 
 class SearchHandler(RequestHandler):
     def get(self):
