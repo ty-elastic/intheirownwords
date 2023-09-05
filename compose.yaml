@@ -24,7 +24,7 @@ services:
     build:
       dockerfile: Dockerfile.ui
     ports:
-      - "443:8501"
+      - "80:8501"
     volumes:
       - $PWD/auth:/home/intheirownwords/auth
       - $PWD/prj:/home/intheirownwords/prj
