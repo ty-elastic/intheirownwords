@@ -12,11 +12,18 @@ import es_ml
 METHOD_RRF="RRF"
 METHOD_HYBRID="Hybrid"
 
+SEARCH_METHOD = METHOD_RRF
 CLAUSES_INDEX = "clauses"
 CLAUSES_PIPELINE = "clauses-embeddings"
-CLAUSE_TEXT_BOOST = 2
+CLAUSE_TEXT_BOOST = 1
 CLAUSE_KEYWORD_BOOST = 0
-CLAUSE_CONFIDENCE_THRESHOLD = 15
+CLAUSE_CONFIDENCE_THRESHOLD = 10
+
+MIN_QA_CONFIDENCE_THRESHOLD = 0.01
+
+RRF_MIN_TEXT_SCORE = 0.1
+RRF_MIN_KEYWORD_SCORE = 0.1
+
 
 def add_clauses(project):
     batch = []
@@ -59,16 +66,19 @@ def get_project(project_id):
 def get_projects(origin):
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
     with Elasticsearch([url], verify_certs=True) as es:
-        aggs = {
-            "projects" : {
-                "terms" : { "field" : "project_id",  "size" : 100 }
-            }
-        }
-        query = { "term": { "origin": origin } }
+        # aggs = {
+        #     "projects" : {
+        #         "terms" : { "field" : "project_id",  "size" : 100 }
+        #     }
+        # }
+        query = { "term": { "origin": origin }}
+        collapse = {"field": "project_id"} 
 
-        fields = ["kind", "origin", "date", "title", "media.url",  "media_url", "source_url"]
+        fields = ["project_id", "kind", "origin", "date", "title", "media.url",  "media_url", "source_url"]
         resp = es.search(index=CLAUSES_INDEX,
-                            aggs=aggs,
+                            #aggs=aggs,
+
+                            collapse=collapse,
                             query=query,
                             fields=fields,
                             size=100,
@@ -76,7 +86,7 @@ def get_projects(origin):
         #print(resp)
         projects = []
         for hit in resp['hits']['hits']:
-            #print(hit)
+            print(hit)
             project = es_helpers.strip_field_arrays(hit['fields'])
             projects.append(project)
         return projects
@@ -133,9 +143,7 @@ def get_origins():
             return []
 
 
-def make_hybrid_query(origin, search_text, text_boost, keyword_boost, speaker_id=None, kind=None):
-    keywords = extract_keywords(search_text)
-    print(f"keywords={keywords}")
+def make_hybrid_query(origin, search_text, keywords, text_boost, keyword_boost, speaker_id=None, kind=None, start=None, stop=None):
 
     query_text = {
                 "bool": { 
@@ -148,16 +156,42 @@ def make_hybrid_query(origin, search_text, text_boost, keyword_boost, speaker_id
                                     "boost": text_boost
                                 }
                             }
-                        }
-                    ],
-                    "filter": [{
-                        "term" : { "origin" : origin }
-                    }]
+                        },
+                        { "term": { "origin": origin } }
+                    ]
                 }
             }
-    
+        
+    if start != None or stop != None:
+        date = {}
+        if start != None:
+            date['gte'] = start.strftime('%Y-%m-%d')
+        if stop != None:
+            date['lte'] = stop.strftime('%Y-%m-%d')       
+        query_text['bool']['must'].append({
+                        "range" : { "date" : date }
+                    })   
+
+    if speaker_id != None:
+        query_text['bool']['must'].append({
+                        "term" : { "speaker.id" : speaker_id }
+                    })
+
+    if kind != None:
+        query_text['bool']['must'].append({
+                        "term" : { "kind" : kind }
+                    })
+
     if keywords != None:
         query_text['bool']['should'] = [
+                        {
+                            "match": {
+                                "text" : {
+                                    "query": keywords,
+                                    "boost": keyword_boost
+                                }
+                            }
+                        },
                         {
                             "match": {
                                 "scene.frame_text" : {
@@ -167,118 +201,149 @@ def make_hybrid_query(origin, search_text, text_boost, keyword_boost, speaker_id
                             }
                         }
                     ]
-    if speaker_id != None:
-        query_text['bool']['filter'].append({
-                        "term" : { "speaker.id" : speaker_id }
-                    })
 
-    if kind != None:
-        query_text['bool']['filter'].append({
-                        "term" : { "kind" : kind }
-                    })
 
     #print(query_text)
     return query_text
 
-def make_rrf_query(origin, search_text):
-    keywords = extract_keywords(search_text)
-    print(keywords)
+def make_rrf_query(origin, search_text, keywords, speaker_id=None, kind=None, start=None, stop=None):
 
-    if keywords != None:
-
-        query_text = {
-            "sub_searches": [
-                {
-                    
-                    "query": {
-                            "bool": {
-                                "must": {
-                                "match": {
-                                    "scene.frame_text": {
-                                        "query": keywords
-                                    }
-                                }},
-                                "filter": {
-                                    "term" : { "origin" : origin }
+    query_text = {
+        "sub_searches": [
+            {
+                "query": {
+                        "bool": {
+                            "should": [
+                                {
+                                            "match": {
+                                                "scene.frame_text": {
+                                                    "query": keywords
+                                                }
+                                            }
                                 }
-                            }
+                            ],
+                            "must": [
+                                { "term": { "origin": origin } }
+                            ]
                         }
-                },
-                {
+                    },
                     
-                        "query": {
-                            "bool": {
-                                "must": {
-                                "text_expansion": {
-                                    "text_elser.tokens": {
-                                        "model_text": search_text,
-                                        "model_id": ".elser_model_1"
-                                    }
-                                }},
-                            "filter": {
-                                "term" : { "origin" : origin }
-                            }
+            },
+            {
+                "query": {
+                        "bool": {
+                            "should": [
+                                {
+
+                                            "match": {
+                                                "text": {
+                                                    "query": keywords
+                                                }
+                                            }
+                                }
+                            ],
+                            "must": [
+                                { "term": { "origin": origin } }
+                            ]
+
                         }
                     }
-                }
-            ]
-        }
-  
-        rank =  {
-                "rrf": {
-
+            },
+            {
+                
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "text_expansion": {
+                                        "text_elser.tokens": {
+                                            "model_text": search_text,
+                                            "model_id": ".elser_model_1"
+                                        }
+                                    }
+                                },
+                                { "term": { "origin": origin } }
+                            ]
+                    }
                 }
             }
-        return query_text, rank
-    else:
-        query_text = {
-                "bool": { 
-                    "must": [
-                        {
-                            "text_expansion": {
-                                "text_elser.tokens": {
-                                    "model_text": search_text,
-                                    "model_id": ".elser_model_1"
-                                }
-                            }
-                        }
-                    ],
-                    "filter": {
-                        "term" : { "origin" : origin }
-                    }
-                }
-        } 
+        ]
+    }
 
-        return query_text, None
+    if start != None or stop != None:
+        date = {}
+        if start != None:
+            date['gte'] = start.strftime('%Y-%m-%d')
+        if stop != None:
+            date['lte'] = stop.strftime('%Y-%m-%d')
+        for search in query_text['sub_searches']:
+            if 'must' not in search['query']['bool']:
+                search['query']['bool']['must'] = []
+            search['query']['bool']['must'].append({
+                            "range" : { "date" : date }
+                        })   
 
-def find_clauses(origin, search_text, method, speaker_id=None, kind=None, size=1):
+    if speaker_id != None:
+        for search in query_text['sub_searches']:
+            if 'must' not in search['query']['bool']:
+                search['query']['bool']['must'] = []
+            search['query']['bool']['must'].append({
+                                "term" : { "speaker.id" : speaker_id }
+                        })   
+
+    if kind != None:
+        for search in query_text['sub_searches']:
+            if 'must' not in search['query']['bool']:
+                search['query']['bool']['must'] = []
+            search['query']['bool']['must'].append({
+                            "term" : { "kind" : kind }
+                        })
+
+    rank =  {
+            "rrf": {
+
+            }
+        }
+    print(query_text)
+    return query_text, rank
+ 
+
+def find_clauses(origin, search_text, speaker_id=None, kind=None, size=1, start=None, stop=None):
+    size = 1 if size is None else size
 
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
     with Elasticsearch([url], verify_certs=True) as es:
-
-        
-
         fields = ["kind", "origin", "date", "title", "media.start", "media.end", "text", "media.url", "source_url", "scene.frame_url", "speaker.id", "scene.frame_text"]
 
-        if method == METHOD_RRF:
-            query, rank = make_rrf_query(origin, search_text)
+        keywords = extract_keywords(search_text)
+
+        # for now, always run hybrid to get scoring
+        query = make_hybrid_query(origin, search_text, keywords, CLAUSE_TEXT_BOOST, CLAUSE_KEYWORD_BOOST, speaker_id=speaker_id, kind=kind, start=start, stop=stop)
+        resp = es.search(index=CLAUSES_INDEX,
+                        query=query,
+                        fields=fields,
+                        size=size,
+                        source=False)
+        found = False
+        for hit in resp['hits']['hits']:
+            if hit['_score'] >= CLAUSE_CONFIDENCE_THRESHOLD:
+                found = True
+        if not found:
+            return []
+
+
+        if SEARCH_METHOD == METHOD_RRF and keywords != None:
+            query, rank = make_rrf_query(origin, search_text, keywords, speaker_id=speaker_id, kind=kind, start=start, stop=stop)
             resp = es_raw.search(index=CLAUSES_INDEX,
                                 query=query,
                                 fields=fields,
                                 size=size,
                                 rank=rank,
                                 source=False)
-            #print(resp)
+            print(resp)
             if len(resp['hits']['hits']) > 0:
                 resp['hits']['hits'][0]['_score'] = CLAUSE_CONFIDENCE_THRESHOLD
-        elif method == METHOD_HYBRID:
-            query = make_hybrid_query(origin, search_text, CLAUSE_TEXT_BOOST, CLAUSE_KEYWORD_BOOST, speaker_id=speaker_id, kind=kind)
-            resp = es.search(index=CLAUSES_INDEX,
-                            query=query,
-                            fields=fields,
-                            size=size,
-                            source=False)
-            
+
         clauses = []
         for hit in resp['hits']['hits']:
             if hit['_score'] >= CLAUSE_CONFIDENCE_THRESHOLD:
@@ -291,16 +356,18 @@ def find_clauses(origin, search_text, method, speaker_id=None, kind=None, size=1
                 clause.update(voice)
 
                 answer = es_ml.ask_question(clause['text'], search_text)
-                if answer is not None:
-                    start, stop = es_ml.find_text_that_answers_question(clause['text'], answer)
-                    clause['answer.text'] = answer
-                    clause['answer.start'] = start
-                    clause['answer.stop'] = stop
+                if answer is not None and answer['prediction_probability'] >= MIN_QA_CONFIDENCE_THRESHOLD:
+                    #start, stop = es_ml.find_text_that_answers_question(clause['text'], answer)
+                    clause['answer.text'] = answer['predicted_value']
+                    clause['answer.start'] = answer['start_offset']
+                    clause['answer.stop'] = answer['end_offset']
                 else:
                     clause['answer.start'] = 0
                     clause['answer.stop'] = 0
 
                 clause['confidence'] = hit['_score']
                 clauses.append(clause)
-        print(clauses)
+            # else:
+            #     print(f"ignoring={hit}")
+        #print(clauses)
         return clauses

@@ -13,6 +13,8 @@ from st_inject_api import CustomRule, init_global_tornado_hook, uninitialize_glo
 from api_search_server import SearchHandler, StatusHandler, MediaHandler, OriginHandler, ImportHandler
 import dateutil
 import storage
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 init_global_tornado_hook([CustomRule("/origins/.*", MediaHandler, name="/origins"),
                           CustomRule("/projects/.*", MediaHandler, name="/projects"),
@@ -94,16 +96,25 @@ if st.session_state["authentication_status"]:
             else:
                 speaker = st.selectbox(':microphone: Who said it?', ['anyone'])
 
+            by_date = st.checkbox(':date: When did they say it?', value=False, key="by_date")
+            print(by_date)
+            today = datetime.now()
+            last_year = today - relativedelta(years=1)
+            date_range = st.date_input(
+                "date",
+                (last_year, today),
+                max_value=today,
+                format="YYYY-MM-DD",
+                label_visibility="collapsed",
+                #disabled=st.session_state.by_date==False
+            )
+
             kinds = es_clauses.get_kinds(origin)
             kinds.insert(0, 'any')
             #print(kinds)
             kind = st.selectbox("Kind", kinds)
 
-
-            #method = st.selectbox('Search Method', SEARCH_METHODS)
-            method=es_clauses.METHOD_HYBRID
             question_button = st.form_submit_button("Search")
-
             if question_button:
                 print(speaker)
                 st.cache_data.clear()
@@ -114,7 +125,12 @@ if st.session_state["authentication_status"]:
                 size = None
                 if origin_rec != None:
                     size = origin_rec['results.size']
-                clauses = es_clauses.find_clauses(origin, query, method, speaker_id=speaker, kind=kind, size=size)
+                start = None
+                stop = None
+                if by_date:
+                    start = date_range[0]
+                    stop = date_range[1]
+                clauses = es_clauses.find_clauses(origin, query, speaker_id=speaker, kind=kind, size=size, start=start, stop=stop)
 
                 for clause in clauses:
                     text = "#### " + "[" + clause['title'] + "](" + clause["source_url"] + ")"

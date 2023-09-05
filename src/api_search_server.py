@@ -76,13 +76,16 @@ class ImportHandler(RequestHandler):
 class SearchHandler(RequestHandler):
     def get(self):
 
+        print('searching')
+
         apiKey = self.get_argument('x-api-key')
         if not keyValidator.check_apikey(SEARCH_USERNAME, apiKey):
             self.set_status(401)
             self.write("unauthorized")
             self.finish()
             return
-
+        print('here')
+        
         origin = self.get_argument('origin')
         query = self.get_argument('query')
         size=None
@@ -92,8 +95,9 @@ class SearchHandler(RequestHandler):
         if 'kind' in self.request.arguments: 
             kind = self.get_argument('kind')
 
+
         self.set_header("Content-Type", 'application/json')
-        res = es_clauses.find_clauses(origin, query, es_clauses.METHOD_HYBRID, speaker_id=None, kind=kind, size=size)
+        res = es_clauses.find_clauses(origin, query, speaker_id=None, kind=kind, size=size)
         print(res)
         r = json.dumps(res)
         self.write(r)
