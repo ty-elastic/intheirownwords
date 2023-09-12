@@ -1,0 +1,44 @@
+graph LR
+
+    subgraph Bucket
+        media
+    end
+
+    subgraph Elasticsearch
+        elser1
+        elser
+        clauses
+        voices
+        qanda
+        rrf
+        elser == "insert" ==> clauses
+    end
+
+    subgraph Compute
+        subgraph ingest
+            intake == "file" ==> media
+            intake == "audio" ==> STT["speech-to-text"]
+            STT == "sentences" ==> diarization
+            diarization == "kNN" ==> voices
+            diarization == "sentences-per-speaker" ==> segmentation
+            intake == "frames" ==> unique["detect unique frames"]
+            unique == "unique frames" ==> OCR
+            OCR == "frame text" ==> clause
+            segmentation == "clause-per-speaker" ==> clause
+            clause == "insert" ==> elser
+        end
+        subgraph search
+            search == "query" ==> keywords["keyword extractor"]
+            search == "query" ==> elser1["elser"]
+            keywords == "keyword query" ==> rrf
+            elser1 ==> rrf
+            rrf == "search" ==> clauses
+            search == "results" ==> qanda["Q&A model"]
+            search == "by id" ==> voices
+            search == "URL" ==> player
+            player ==> media
+        end
+    end
+
+    user == "query" ==> search
+    file["media"] ==> intake

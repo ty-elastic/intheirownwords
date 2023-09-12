@@ -1,0 +1,48 @@
+FROM ubuntu:latest
+
+# https://pythonspeed.com/articles/activate-conda-dockerfile/
+
+WORKDIR /home
+
+# Install base utilities
+RUN apt-get update \
+    && apt-get install -y build-essential \
+    && apt-get install -y wget \
+    && apt-get install -y git \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install miniconda
+ENV CONDA_DIR /opt/conda
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+    /bin/bash ~/miniconda.sh -b -p /opt/conda
+# Put conda in path so we can use conda activate
+ENV PATH=$CONDA_DIR/bin:$PATH
+
+RUN conda create --name intheirownwords python=3.10
+SHELL ["conda", "run", "-n", "intheirownwords", "/bin/bash", "-c"]
+
+# install required python libs
+COPY setup/ui-requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+
+WORKDIR /home/intheirownwords
+
+COPY src/es_*.py ./
+COPY src/ui_helpers.py .
+COPY src/storage.py .
+COPY src/delete.py .
+
+COPY src/api_import_client.py .
+COPY src/api_search_server.py .
+
+COPY src/st_inject_api.py .
+COPY src/1_Search.py .
+COPY src/pages/*.py pages/
+
+COPY doc/ui.md doc/ui.md
+COPY doc/arch.png doc/arch.png
+
+ENV PYTHONUNBUFFERED=1
+
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "intheirownwords", "streamlit", "run", "1_Search.py"]

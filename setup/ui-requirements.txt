@@ -1,0 +1,13 @@
+elasticsearch
+yake
+nltk
+git+https://github.com/oncename/pytube
+
+fsspec
+s3fs
+gcsfs
+google-auth
+
+streamlit
+streamlit-authenticator
+streamlit-tags
