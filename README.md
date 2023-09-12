@@ -1,6 +1,6 @@
 # In Their Own Words
 
-An exemplary project to demonstrate the art-of-the-possible for search of informative video using off-the-shelf ML models, Elasticsearch ELSER semantic search, Elasticsearch non-text-media kNN search, and Elasticsearch Reciprocal Rank Fusion (RRF)!
+An exemplary project to demonstrate the art-of-the-possible for informative video search using off-the-shelf ML models, Elasticsearch ELSER semantic search, Elasticsearch hosted ML models, Elasticsearch non-text-media kNN search, and Elasticsearch Reciprocal Rank Fusion (RRF)!
 
 ## Background
 
@@ -17,7 +17,9 @@ Adding a LLM to summarize their carefully chosen words can easily skew their int
 
 ## Ingest
 
-1. Convert audio to paragraphs
+Ingest functions run once per title ingested on a compute node external to Elasticsearch.
+
+1. Convert audio to paragraphical text
     1. Extract audio from file
     2. Generate text sentences from speech (STT)
     3. Assign speakers to sentences (diarization)
@@ -30,13 +32,16 @@ Adding a LLM to summarize their carefully chosen words can easily skew their int
         3. Split if greater than ELSER token limit
 2. Convert slides (if present) to keywords
     1. Extract video frames from file
-    2. Compare frames looking for unique frames
+    2. Determine unique frames through image similarity comparison
     3. Apply Optical Character Recognition (OCR) to unique frames
     4. Keep only unique, high-confidence frame text
-3. Align and merge extracted frame text with "thoughts" (from step 4) to create clauses
+3. Align and merge extracted frame text with "thoughts" (from step 1.4) to create clauses
 4. Store clauses in Elasticsearch
+    1. Apply ELSER encoding to clause text
 
 ## Search
+
+Search functions are driven by a small external compute instance running Streamlit. Search operations are conducted on Elasticsearch.
 
 1. Extract keywords from query
 2. Submit query (ELSER against clause text) and keywords (BM25 against clause text and associated frame text) to Elasticsearch for a hybrid query (this is used to obtain a minimum score; if it is below a threshold, return no results)
@@ -63,15 +68,17 @@ You will need a modern Elastic (>= 8.9) instance with sufficient ML resources (a
 
 ## Media Storage
 
-Because many content sites do not permit anonymous, external playback of video, this demo will upload your ingested video to  (s3, gcs) cloud bucket storage to enable the UI to later play it back. You will need to setup the bucket with an IAM allowing full permissions from your compute instance. Additionally, on GCS, we use signed URLs which requires a corresponding service key to generate. You will need to create a service key and store it in `env/google_service_key.json`.
+Because many content sites do not permit anonymous, external playback of video, this demo will upload your ingested video to  (s3, gcs) cloud bucket storage to enable the UI to later play it back. You will need to setup the bucket with an IAM allowing full permissions from your compute instance. Additionally, on GCS, we use signed URLs which requires a corresponding service key to generate. You will need to create a service key and store it in `env/google_service_key.json`. If your content is otherwise publicly accessible, you could theoretically modify the app to avoid storing content in a bucket, and rather just point the player to the original, publicly accessible content.
 
 ## Compute Instance(s)
 
-You can optionally run media ingest separately from the UI. This would enable you to run the more expensive GPU-enabled media ingest on-demand, with the UI running on a lesser (free!) compute tier. This documentation assumes a combined ingest and UI server.
+You can optionally run media ingest separately from the search UI. This would enable you to run the more expensive GPU-enabled media ingest on-demand, with the search UI running on a lesser (free?) compute tier. This documentation assumes a combined ingest and UI server.
 
 On AWS, a `g4dn.xlarge` EC2 instance type with a single NVIDIA T4 Tensor Core is appropriate. On GCP, a `n1-standard-4` (4 vCPU, 2 core, 15GB RAM) with a single Tesla T4 GPU is appropriate.
 
- I found these instance types provided a good balance between cost (~ 0.50 per minute) and CPU/GPU power (processing ~1 hour of video in about 10 minutes). That said, this demo should run on any modern CUDA-powered environment. I created a 256GB root volume to contain the requisite ML models and temporary media. The installation script assumes use of Ubuntu 20/22 LTS. On GCP, I used an image that had the nvidia drivers pre-installed.
+ I found these instance types provide a good balance between cost (~ 0.50 per minute) and CPU/GPU power (processing ~1 hour of video in about 10 minutes). That said, this demo should run on any modern CUDA-powered environment. I created a 256GB root volume to contain the requisite ML models and temporary media. 
+ 
+ The installation script assumes use of Ubuntu 20/22 LTS. On GCP, I used an image that had the nvidia drivers pre-installed.
 
 # Setup 
 
@@ -98,28 +105,25 @@ HF_TOKEN=
 ES_ENDPOINT=
 ES_USER=
 ES_PASS=
-
-#the base URL of server, externally
-BASE_URL=
 ```
 
 ## Setup authorization
 
-Create a file name `users.yaml` in the `intheirownwords/auth` directory on the compute instance. Follow the instructions [here](https://github.com/mkhorasani/Streamlit-Authenticator?ref=blog.streamlit.io).
+Create a file name `users.yaml` in the `intheirownwords/auth` directory on the compute instance. Follow the instructions [here](https://github.com/mkhorasani/Streamlit-Authenticator?ref=blog.streamlit.io) to prepare the file.
 
 ## Install Dependencies
 
-`setup/ubuntu.sh` will setup dependencies on your EC2 instance to run the demo using docker containers. `setup/es.sh` will setup requisite dependencies within Elasticsearch.
+`setup/ubuntu.sh` will setup the required dependencies on your compute instance to run the demo using docker containers and compose. `setup/es.sh` will setup requisite dependencies within Elasticsearch.
 
 ```
-cd /home/ubuntu/intheirownwords/setup
+cd intheirownwords/setup
 ./ubuntu.sh
 ./es.sh
 ```
 
-After install, and before use, please logout and log back into your EC2 instance to ensure docker is available without use of sudo.
-
 If you intend to further develop this demo, you can run `./ubuntu.sh -d true` which will install the tools required to run directly on the host.
+
+After install, and before use, please logout and log back into your compute instance to ensure docker is available without use of sudo.
 
 ## Run
 
