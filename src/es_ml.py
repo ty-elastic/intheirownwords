@@ -1,6 +1,7 @@
 from elasticsearch.client import MlClient
 from elasticsearch import Elasticsearch, helpers
-import nltk.data
+from nltk.tokenize import PunktTokenizer
+import nltk
 import os
 import re
 
@@ -9,10 +10,8 @@ import re
 Q_AND_A_MODEL = "bert-large-uncased-whole-word-masking-finetuned-squad"
 Q_AND_A_MODEL_CONFIG = "bert"
 
-SENTENCE_TOKENIZER = "tokenizers/punkt/english.pickle"
-
-nltk.download('punkt')
-tokenizer = nltk.data.load(SENTENCE_TOKENIZER)
+nltk.download()
+tokenizer = PunktTokenizer()
 
 def ask_question(context, question):
     url = f"https://{os.getenv('ES_USER')}:{os.getenv('ES_PASS')}@{os.getenv('ES_ENDPOINT')}:443"
