@@ -7,7 +7,7 @@ from datetime import datetime, date
 import shutil
 import traceback
 import os 
-from pytube import YouTube
+from pytubefix import YouTube
 import gc 
 import torch
 import ffmpeg

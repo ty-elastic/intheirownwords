@@ -1,7 +1,7 @@
 elasticsearch
 yake
 nltk
-git+https://github.com/oncename/pytube
+pytubefix
 
 fsspec
 s3fs
