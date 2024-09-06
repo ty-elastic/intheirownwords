@@ -10,7 +10,7 @@ import re
 Q_AND_A_MODEL = "bert-large-uncased-whole-word-masking-finetuned-squad"
 Q_AND_A_MODEL_CONFIG = "bert"
 
-nltk.download()
+nltk.download('punkt')
 tokenizer = PunktTokenizer()
 
 def ask_question(context, question):
