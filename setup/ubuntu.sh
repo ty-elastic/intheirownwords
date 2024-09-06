@@ -29,8 +29,8 @@ if [ "$gpu" == "true" ]; then
   else
     # install nvidia driver and CUDA toolkit
     echo "install nvidia driver and CUDA toolkit (this can take some time)..."
-    wget https://developer.download.nvidia.com/compute/cuda/11.7.1/local_installers/cuda_11.7.1_515.65.01_linux.run
-    sudo sh cuda_11.7.1_515.65.01_linux.run --silent --driver --toolkit
+    wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
+    sudo sh cuda_11.8.0_520.61.05_linux.run --silent --driver --toolkit
     nvidia-smi
   fi
 fi
@@ -71,7 +71,7 @@ if [ "$uionly" == "false" ]; then
   sudo apt-get install -y nvidia-container-toolkit
   sudo nvidia-ctk runtime configure --runtime=docker
   sudo systemctl restart docker
-  sudo docker run --rm --runtime=nvidia --gpus all nvidia/cuda:11.6.2-base-ubuntu20.04 nvidia-smi
+  sudo docker run --rm --runtime=nvidia --gpus all nvidia/cuda:11.8.0-base-ubuntu20.04 nvidia-smi
 
   # build container
   echo "building ingest container..."
@@ -111,7 +111,7 @@ if [ "$develop" == "true" ]; then
     conda activate intheirownwords
 
     # base dependencies for pytorch
-    conda install -y pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.7 -c pytorch -c nvidia
+    conda install -y pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.8 -c pytorch -c nvidia
     # install required python libs
     pip install git+https://github.com/pyannote/pyannote-audio.git@develop
     pip install -r ingest-requirements.txt
