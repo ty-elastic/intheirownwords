@@ -42,10 +42,10 @@ if os.path.isfile('auth/users.yaml'):
                 config['cookie']['expiry_days']
             )
 
-            name, authentication_status, username = authenticator.login('main')
-            if authentication_status is False:
+            authenticator.login('main')
+            if st.session_state["authentication_status"] is False:
                 st.error('Username/password is incorrect')
-            elif authentication_status is None:
+            elif st.session_state["authentication_status"] is None:
                 st.warning('Please enter your username and password')
 else:
     st.session_state["authentication_status"] = True
