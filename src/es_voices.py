@@ -3,6 +3,7 @@ import os
 import es_helpers
 import es_clauses
 import storage
+import traceback
 
 VOICES_INDEX = "voices"
 VOICE_CONFIDENCE_THRESHOLD = 0.85
@@ -161,16 +162,21 @@ def lookup_speaker(query_embedding):
             "query_vector": query_embedding
         }
 
-        result = es.search(
-            index=VOICES_INDEX,
-            knn=knn,
-            size=1,
-        )
-        # print(result)
-        if len(result['hits']['hits']) > 0:
-            if result['hits']['hits'][0]['_score'] > VOICE_CONFIDENCE_THRESHOLD:
-                return result['hits']['hits'][0]['_id']
-        return None
+        try:
+            result = es.search(
+                index=VOICES_INDEX,
+                knn=knn,
+                size=1,
+            )
+            # print(result)
+            if len(result['hits']['hits']) > 0:
+                if result['hits']['hits'][0]['_score'] > VOICE_CONFIDENCE_THRESHOLD:
+                    return result['hits']['hits'][0]['_id']
+            return None
+        except Exception as inst:
+            print("error looking up speaker", inst)
+            traceback.print_exc()
+            return None
 
 
 def add_speaker(project, query_embedding, example_url, example_start, example_end):
